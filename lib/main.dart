@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:single_read/article_page_view.dart';
 
 import 'model.dart';
 
@@ -90,10 +91,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget contentPage(int index) {
-    double width = MediaQuery.of(context).size.width;
-    //show image
-    //read line
-    //TO READ
     if (articles.isEmpty) {
       return Center(
         child: Text('loading'),
@@ -101,34 +98,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     Article article = articles[index];
-    return SafeArea(
-      top: true,
-      child: Padding(
-        padding: const EdgeInsets.all(0.0),
-        child: Column(
-          children: <Widget>[
-            Container(
-              width: width,
-              child: CachedNetworkImage(
-                imageUrl: article.thumbnail,
-                fit: BoxFit.fitWidth,
-              ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(article.title),
-            SizedBox(
-              height: 10,
-            ),
-            Text(article.excerpt == null ? '' : article.excerpt),
-            SizedBox(
-              height: 10,
-            ),
-            Text(article.author)
-          ],
-        ),
-      ),
-    );
+    return ArticlePageView(article);
   }
 }

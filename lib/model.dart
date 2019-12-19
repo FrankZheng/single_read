@@ -57,6 +57,7 @@ class Article {
   String author;
   String avatar;
   String category;
+  int model;
 
   Article(Map<String, dynamic> jsonData) {
     id = jsonData['id'];
@@ -74,6 +75,7 @@ class Article {
     author = jsonData['author'];
     avatar = jsonData['avatar'];
     category = jsonData['category'];
+    model = int.parse(jsonData['model'].toString());
   }
 }
 
