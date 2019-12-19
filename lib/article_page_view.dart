@@ -72,6 +72,41 @@ class _ArticlePageViewState extends State<ArticlePageView> {
             Text(
               article.author,
               style: TextStyle(fontSize: 20),
+            ),
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.comment,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Text(article.comment),
+                  SizedBox(
+                    width: 30,
+                  ),
+                  Icon(
+                    Icons.favorite_border,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Text(article.good),
+                  Spacer(),
+                  Text(
+                    '${article.view} views',
+                    style: TextStyle(
+                        color: Colors.black, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
             )
           ],
         ),
