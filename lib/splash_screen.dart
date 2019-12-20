@@ -9,6 +9,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   double opacity = 0.0;
+  double imgOffset = 0;
 
   @override
   void initState() {
@@ -32,14 +33,14 @@ class _SplashScreenState extends State<SplashScreen> {
         alignment: AlignmentDirectional.topCenter,
         children: <Widget>[
           AnimatedOpacity(
+            onEnd: onBackgroundImageShowed,
             opacity: opacity,
             duration: Duration(milliseconds: 3000),
             child: Image(
-              width: width,
-              height: height,
-              image: AssetImage('assets/singe_read_splash_1.jpg'),
-              fit: BoxFit.cover,
-            ),
+                width: width,
+                height: height,
+                image: AssetImage('assets/singe_read_splash_1.jpg'),
+                fit: BoxFit.cover),
           ),
           ...textWidget(),
         ],
@@ -86,5 +87,13 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
           top: height * 0.8)
     ];
+  }
+
+  void onBackgroundImageShowed() {
+    Timer(Duration(milliseconds: 1000), () {
+      setState(() {
+        imgOffset = 30;
+      });
+    });
   }
 }
