@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,8 +9,8 @@ import 'package:single_read/splash_screen.dart';
 import 'model.dart';
 
 void main() {
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.black, statusBarBrightness: Brightness.light));
+  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  //     statusBarColor: Colors.black, statusBarBrightness: Brightness.light));
   runApp(MyApp());
 }
 
@@ -20,17 +22,17 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          //primarySwatch: Colors.blue,
-          ),
+        // This is the theme of your application.
+        //
+        // Try running your application with "flutter run". You'll see the
+        // application has a blue toolbar. Then, without quitting the app, try
+        // changing the primarySwatch below to Colors.green and then invoke
+        // "hot reload" (press "r" in the console where you ran "flutter run",
+        // or simply save your changes to "hot reload" in a Flutter IDE).
+        // Notice that the counter didn't reset back to zero; the application
+        // is not restarted.
+        primarySwatch: Colors.blue,
+      ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -49,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController pageController = new PageController();
   int itemCount = 4;
   List<Article> articles = [];
-  double opacity = 0.0;
+  bool splashVisible = true;
 
   void init() async {
     List<Article> articles = await Model.shared.getTestArticles();
@@ -58,8 +60,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     print(articles.length);
 
-    setState(() {
-      opacity = 1.0;
+    Timer(Duration(milliseconds: 4000), () {
+      setState(() {
+        splashVisible = false;
+      });
     });
   }
 
@@ -92,11 +96,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    const Duration duration = Duration(milliseconds: 1000);
     return Scaffold(
         // appBar: AppBar(
         //   title: Text(widget.title),
         // ),
-        body: Center(child: SplashScreen()));
+        body: Center(
+            child: Stack(
+      children: <Widget>[
+        AnimatedOpacity(
+            duration: duration,
+            opacity: splashVisible ? 1.0 : 0.0,
+            child: SplashScreen()),
+        AnimatedOpacity(
+            duration: duration,
+            opacity: splashVisible ? 0.0 : 1.0,
+            child: contentWidget()),
+      ],
+    )));
   }
 
   Widget contentPage(int index) {

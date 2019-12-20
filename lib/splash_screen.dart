@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
           AnimatedOpacity(
             onEnd: onBackgroundImageShowed,
             opacity: opacity,
-            duration: Duration(milliseconds: 3000),
+            duration: Duration(milliseconds: 2000),
             child: Image(
                 width: width,
                 height: height,
