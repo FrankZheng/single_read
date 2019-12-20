@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:single_read/article_page_view.dart';
+import 'package:single_read/splash_screen.dart';
 
 import 'model.dart';
 
@@ -48,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController pageController = new PageController();
   int itemCount = 4;
   List<Article> articles = [];
+  double opacity = 0.0;
 
   void init() async {
     List<Article> articles = await Model.shared.getTestArticles();
@@ -55,6 +57,10 @@ class _MyHomePageState extends State<MyHomePage> {
       this.articles = articles;
     });
     print(articles.length);
+
+    setState(() {
+      opacity = 1.0;
+    });
   }
 
   void _onPageChanged(int index) {
@@ -72,14 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        // appBar: AppBar(
-        //   title: Text(widget.title),
-        // ),
-        body: Center(
-            child: PageView.builder(
+  Widget contentWidget() {
+    return PageView.builder(
       itemCount: itemCount,
       scrollDirection: Axis.vertical,
       controller: pageController,
@@ -87,7 +87,16 @@ class _MyHomePageState extends State<MyHomePage> {
       itemBuilder: (context, index) {
         return contentPage(index);
       },
-    )));
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        // appBar: AppBar(
+        //   title: Text(widget.title),
+        // ),
+        body: Center(child: SplashScreen()));
   }
 
   Widget contentPage(int index) {
