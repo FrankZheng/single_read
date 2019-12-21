@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'article_page_view.dart';
 import 'model.dart';
@@ -10,47 +13,38 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   final PageController pageController = new PageController();
-  int itemCount = 0;
-  List<Article> articles = [];
+
+  Model get _model => Provider.of<Model>(context);
 
   @override
   void initState() {
-    init();
     super.initState();
+    print('main view init');
+    Timer(Duration(milliseconds: 100), () {
+      _model.loadMoreArticles();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      itemCount: itemCount,
+      itemCount: _model.articles.length,
       scrollDirection: Axis.vertical,
       controller: pageController,
       onPageChanged: _onPageChanged,
       itemBuilder: (context, index) {
-        return contentPage(index);
+        return ArticlePageView(_model.articles[index]);
       },
     );
   }
 
-  void init() async {
-    List<Article> articles = await Model.shared.getArticles();
-    setState(() {
-      this.articles = articles;
-      this.itemCount = articles.length;
-    });
-    print(articles.length);
-  }
-
-  void _onPageChanged(int page) {}
-
-  Widget contentPage(int index) {
-    if (articles.isEmpty) {
-      return Center(
-        child: Text('loading'),
-      );
+  void _onPageChanged(int index) {
+    //each page has 11 articles
+    print('curent index: $index, total: ${_model.articles.length}');
+    int numPerPage = 11;
+    if (index == _model.articles.length - numPerPage ~/ 2) {
+      print('load more articles');
+      _model.loadMoreArticles();
     }
-
-    Article article = articles[index];
-    return ArticlePageView(article);
   }
 }

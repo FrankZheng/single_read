@@ -42,6 +42,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 enum ArticleModel { Top, Text, Video, Audio, Calendar, Activity }
 
@@ -102,26 +103,35 @@ class Article {
   }
 }
 
-class Model {
-  static Model shared = new Model();
-  final Dio dio;
-  Model() : dio = Dio() {
-    dio.options.baseUrl = 'http://static.owspace.com';
+class Model with ChangeNotifier {
+  //static Model shared = new Model();
+  final Dio _dio;
+  final ArticleModel _model;
+  Model({ArticleModel model = ArticleModel.Top})
+      : _dio = Dio(),
+        _model = model {
+    _dio.options.baseUrl = 'http://static.owspace.com';
   }
-  Map<ArticleModel, List<Article>> articles = {
-    ArticleModel.Top: [],
-    ArticleModel.Text: [],
-    ArticleModel.Video: [],
-    ArticleModel.Audio: [],
-    ArticleModel.Calendar: [],
-  };
-  Map<ArticleModel, int> articlePages = {
-    ArticleModel.Top: 1,
-    ArticleModel.Text: 1,
-    ArticleModel.Video: 1,
-    ArticleModel.Audio: 1,
-    ArticleModel.Calendar: 1,
-  };
+  final List<Article> _articles = [];
+  int _page = 1;
+
+  List<Article> get articles => _articles;
+  ArticleModel get model => _model;
+
+  // Map<ArticleModel, List<Article>> articles = {
+  //   ArticleModel.Top: [],
+  //   ArticleModel.Text: [],
+  //   ArticleModel.Video: [],
+  //   ArticleModel.Audio: [],
+  //   ArticleModel.Calendar: [],
+  // };
+  // Map<ArticleModel, int> articlePages = {
+  //   ArticleModel.Top: 1,
+  //   ArticleModel.Text: 1,
+  //   ArticleModel.Video: 1,
+  //   ArticleModel.Audio: 1,
+  //   ArticleModel.Calendar: 1,
+  // };
 
   Future<List<Article>> getTestArticles() async {
     List<Article> articles = [];
@@ -140,13 +150,23 @@ class Model {
     return articles;
   }
 
+  Future<void> loadMoreArticles() async {
+    print('load more articles, page:$_page');
+    List<Article> a = await getArticles(model: _model, page: _page);
+    if (a.isNotEmpty) {
+      _articles.addAll(a);
+      _page++;
+      notifyListeners();
+    }
+  }
+
   Future<List<Article>> getArticles(
       {ArticleModel model = ArticleModel.Top, int page = 1}) async {
     //http://static.owspace.com/?c=api&a=getList&p=1&model=1&page_id=0&create_time=0&client=android&version=1.3.0&time=1467867330&device_id=866963027059338&show_sdv=1
 
     List<Article> articles = [];
     try {
-      Response response = await dio.get("/", queryParameters: {
+      Response response = await _dio.get("/", queryParameters: {
         "c": "api",
         "a": "getList",
         "p": "$page",
@@ -169,7 +189,11 @@ class Model {
           }
         }
       }
+
+      //TODO: handle erros
+
     } catch (e) {
+      //TODO: handle errors
       print(e);
     }
     return articles;
