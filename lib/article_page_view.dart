@@ -14,11 +14,13 @@ class ArticlePageView extends StatefulWidget {
 class _ArticlePageViewState extends State<ArticlePageView> {
   Widget buildArticleContentView(Article article) {
     double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    double thumbnailHeight = height * 0.3;
     if (article.model == 5) {
       return buildPosterView(article);
     } else {
       return buildBaseArticleContentView(
-          article, buildThumbnailWidget(article, width));
+          article, buildThumbnailWidget(article, width, thumbnailHeight));
     }
   }
 
@@ -114,12 +116,13 @@ class _ArticlePageViewState extends State<ArticlePageView> {
     );
   }
 
-  Widget buildThumbnailWidget(Article article, double width) {
+  Widget buildThumbnailWidget(Article article, double width, double height) {
     return Container(
       width: width,
+      height: height,
       child: CachedNetworkImage(
         imageUrl: article.thumbnail,
-        fit: BoxFit.fitWidth,
+        fit: BoxFit.fitHeight,
       ),
     );
   }

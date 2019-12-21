@@ -1,13 +1,8 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:single_read/article_page_view.dart';
 import 'package:single_read/main_view.dart';
 import 'package:single_read/splash_screen.dart';
-
-import 'model.dart';
 
 void main() {
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
