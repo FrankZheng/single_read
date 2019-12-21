@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:single_read/model.dart';
@@ -27,7 +29,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
   Widget buildBaseArticleContentView(Article article, Widget thumbnailWidget) {
     double width = MediaQuery.of(context).size.width;
     return SafeArea(
-      top: false,
+      top: Platform.isAndroid,
       child: Padding(
         padding: const EdgeInsets.all(0.0),
         child: Column(
@@ -122,7 +124,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
       height: height,
       child: CachedNetworkImage(
         imageUrl: article.thumbnail,
-        fit: BoxFit.fitHeight,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -131,7 +133,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return SafeArea(
-        top: false,
+        top: Platform.isAndroid,
         child: Container(
           width: width,
           height: height,
