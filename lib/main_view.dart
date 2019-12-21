@@ -33,7 +33,7 @@ class _MainViewState extends State<MainView> {
   }
 
   void init() async {
-    List<Article> articles = await Model.shared.getTestArticles();
+    List<Article> articles = await Model.shared.getArticles();
     setState(() {
       this.articles = articles;
       this.itemCount = articles.length;

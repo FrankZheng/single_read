@@ -38,8 +38,12 @@
 */
 
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+
+enum ArticleModel { Top, Text, Video, Audio, Calendar, Activity }
 
 class Article {
   String id;
@@ -100,6 +104,24 @@ class Article {
 
 class Model {
   static Model shared = new Model();
+  final Dio dio;
+  Model() : dio = Dio() {
+    dio.options.baseUrl = 'http://static.owspace.com';
+  }
+  Map<ArticleModel, List<Article>> articles = {
+    ArticleModel.Top: [],
+    ArticleModel.Text: [],
+    ArticleModel.Video: [],
+    ArticleModel.Audio: [],
+    ArticleModel.Calendar: [],
+  };
+  Map<ArticleModel, int> articlePages = {
+    ArticleModel.Top: 1,
+    ArticleModel.Text: 1,
+    ArticleModel.Video: 1,
+    ArticleModel.Audio: 1,
+    ArticleModel.Calendar: 1,
+  };
 
   Future<List<Article>> getTestArticles() async {
     List<Article> articles = [];
@@ -114,6 +136,41 @@ class Model {
           }
         }
       }
+    }
+    return articles;
+  }
+
+  Future<List<Article>> getArticles(
+      {ArticleModel model = ArticleModel.Top, int page = 1}) async {
+    //http://static.owspace.com/?c=api&a=getList&p=1&model=1&page_id=0&create_time=0&client=android&version=1.3.0&time=1467867330&device_id=866963027059338&show_sdv=1
+
+    List<Article> articles = [];
+    try {
+      Response response = await dio.get("/", queryParameters: {
+        "c": "api",
+        "a": "getList",
+        "p": "$page",
+        "model": "${model.index}",
+        "create_time": 0,
+        "client": Platform.isAndroid ? "andorid" : "ios",
+        "version": "1.3.0",
+        "time": DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        "device_id": 866963027059338, //figure out the random number logic later
+        "show_sdv": 1
+      });
+      Map<String, dynamic> jsonData = response.data as Map<String, dynamic>;
+      if (jsonData.containsKey('status') && jsonData['status'] == 'ok') {
+        if (jsonData.containsKey('code') && jsonData['code'] == 0) {
+          if (jsonData.containsKey('datas')) {
+            List<dynamic> data = jsonData['datas'];
+            for (Map<String, dynamic> a in data) {
+              articles.add(Article.fromJson(a));
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
     }
     return articles;
   }
