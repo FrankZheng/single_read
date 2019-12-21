@@ -59,23 +59,42 @@ class Article {
   String category;
   int model;
 
-  Article(Map<String, dynamic> jsonData) {
-    id = jsonData['id'];
-    uid = jsonData['uid'];
-    title = jsonData['title'];
-    excerpt = jsonData['excerpt'];
-    lead = jsonData['lead'];
-    thumbnail = jsonData['thumbnail'];
-    video = jsonData['video'];
-    fm = jsonData['fm'];
-    view = jsonData['view'].toString();
-    html5 = jsonData['html5'];
-    comment = jsonData['comment'].toString();
-    good = jsonData['good'].toString();
-    author = jsonData['author'];
-    avatar = jsonData['avatar'];
-    category = jsonData['category'];
-    model = int.parse(jsonData['model'].toString());
+  Article(
+      {this.id,
+      this.uid,
+      this.title,
+      this.excerpt,
+      this.lead,
+      this.thumbnail,
+      this.video,
+      this.fm,
+      this.view,
+      this.html5,
+      this.comment,
+      this.good,
+      this.author,
+      this.avatar,
+      this.category,
+      this.model});
+
+  factory Article.fromJson(Map<String, dynamic> json) {
+    return Article(
+        id: json['id'],
+        uid: json['uid'],
+        title: json['title'],
+        excerpt: json['excerpt'],
+        lead: json['lead'],
+        thumbnail: json['thumbnail'],
+        video: json['video'],
+        fm: json['fm'],
+        view: json['view'].toString(),
+        html5: json['html5'],
+        comment: json['comment'].toString(),
+        good: json['good'].toString(),
+        author: json['author'],
+        avatar: json['avatar'],
+        category: json['category'],
+        model: int.parse(json['model'].toString()));
   }
 }
 
@@ -91,7 +110,7 @@ class Model {
         if (jsonData.containsKey('datas')) {
           List<dynamic> data = jsonData['datas'];
           for (Map<String, dynamic> a in data) {
-            articles.add(new Article(a));
+            articles.add(Article.fromJson(a));
           }
         }
       }
