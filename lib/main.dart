@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:single_read/article_page_view.dart';
+import 'package:single_read/main_view.dart';
 import 'package:single_read/splash_screen.dart';
 
 import 'model.dart';
@@ -48,18 +49,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final PageController pageController = new PageController();
-  int itemCount = 4;
-  List<Article> articles = [];
   bool splashVisible = true;
 
   void init() async {
-    List<Article> articles = await Model.shared.getTestArticles();
-    setState(() {
-      this.articles = articles;
-    });
-    print(articles.length);
-
     Timer(Duration(milliseconds: 4000), () {
       setState(() {
         splashVisible = false;
@@ -67,31 +59,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _onPageChanged(int index) {
-    //here provide a chance to load next page of articles
-    if (index == itemCount - 1) {
-      setState(() {
-        itemCount = itemCount + 4;
-      });
-    }
-  }
-
   @override
   void initState() {
     init();
     super.initState();
-  }
-
-  Widget contentWidget() {
-    return PageView.builder(
-      itemCount: itemCount,
-      scrollDirection: Axis.vertical,
-      controller: pageController,
-      onPageChanged: _onPageChanged,
-      itemBuilder: (context, index) {
-        return contentPage(index);
-      },
-    );
   }
 
   @override
@@ -111,19 +82,8 @@ class _MyHomePageState extends State<MyHomePage> {
         AnimatedOpacity(
             duration: duration,
             opacity: splashVisible ? 0.0 : 1.0,
-            child: contentWidget()),
+            child: MainView()),
       ],
     )));
-  }
-
-  Widget contentPage(int index) {
-    if (articles.isEmpty) {
-      return Center(
-        child: Text('loading'),
-      );
-    }
-
-    Article article = articles[index];
-    return ArticlePageView(article);
   }
 }
