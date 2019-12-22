@@ -17,7 +17,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
   Widget buildArticleContentView(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    double thumbnailHeight = height * 0.3;
+    double thumbnailHeight = height * 0.35;
     if (article.model == 5) {
       return buildPosterView(article);
     } else {
@@ -28,11 +28,9 @@ class _ArticlePageViewState extends State<ArticlePageView> {
 
   Widget buildBaseArticleContentView(Article article, Widget thumbnailWidget) {
     double width = MediaQuery.of(context).size.width;
-    return SafeArea(
-      top: Platform.isAndroid,
-      child: Padding(
-        padding: const EdgeInsets.all(0.0),
-        child: Column(
+    return Stack(
+      children: <Widget>[
+        Column(
           children: <Widget>[
             thumbnailWidget,
             Container(
@@ -114,7 +112,8 @@ class _ArticlePageViewState extends State<ArticlePageView> {
             )
           ],
         ),
-      ),
+        buildTopbar(),
+      ],
     );
   }
 
@@ -132,14 +131,56 @@ class _ArticlePageViewState extends State<ArticlePageView> {
   Widget buildPosterView(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return SafeArea(
-        top: Platform.isAndroid,
-        child: Container(
+    return Stack(
+      children: <Widget>[
+        Container(
           width: width,
           height: height,
           child:
               CachedNetworkImage(imageUrl: article.thumbnail, fit: BoxFit.fill),
-        ));
+        ),
+        buildTopbar(),
+      ],
+    );
+  }
+
+  Widget buildTopbar() {
+    return Container(
+      height: 70,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Icon(
+              Icons.menu,
+              color: Colors.white,
+              size: 30,
+            ),
+            Text(
+              '单读',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                  fontWeight: FontWeight.w100),
+            ),
+            Icon(
+              Icons.person_outline,
+              color: Colors.white,
+              size: 30,
+            ),
+          ],
+        ),
+      ),
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Colors.black.withAlpha((255 * 0.5).toInt()),
+            Colors.black.withAlpha((255 * 0.05).toInt())
+          ])),
+    );
   }
 
   @override

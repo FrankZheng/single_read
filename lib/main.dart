@@ -10,7 +10,8 @@ import 'model.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.black, statusBarBrightness: Brightness.dark));
+      statusBarColor: Colors.transparent,
+      statusBarBrightness: Brightness.dark));
   runApp(ChangeNotifierProvider.value(value: Model(), child: MyApp()));
 }
 
@@ -60,8 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // appBar: AppBar(
         //   title: Text(widget.title),
         // ),
-        body: Center(
-            child: Stack(
+        body: Stack(
       children: <Widget>[
         AnimatedOpacity(
             duration: duration,
@@ -72,6 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
             opacity: splashVisible ? 0.0 : 1.0,
             child: MainView()),
       ],
-    )));
+    ));
   }
 }
