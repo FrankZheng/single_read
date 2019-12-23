@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:single_read/model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArticlePageView extends StatefulWidget {
   final Article article;
@@ -121,6 +122,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
     return Container(
       width: width,
       height: height,
+      color: Colors.black54,
       child: CachedNetworkImage(
         imageUrl: article.thumbnail,
         fit: BoxFit.cover,
@@ -128,33 +130,47 @@ class _ArticlePageViewState extends State<ArticlePageView> {
     );
   }
 
+  void onPosterViewTapped(Article article) async {
+    final String url = article.html5;
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      print('Could not open $url');
+    }
+  }
+
   Widget buildPosterView(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return Stack(
-      children: <Widget>[
-        Container(
-          width: width,
-          height: height,
-          child:
-              CachedNetworkImage(imageUrl: article.thumbnail, fit: BoxFit.fill),
-        ),
-        buildTopbar(),
-      ],
+    return InkWell(
+      onTap: () => onPosterViewTapped(article),
+      child: Stack(
+        children: <Widget>[
+          Container(
+            width: width,
+            height: height,
+            child: CachedNetworkImage(
+                imageUrl: article.thumbnail, fit: BoxFit.fill),
+          ),
+          buildTopbar(),
+        ],
+      ),
     );
   }
 
   Widget buildTopbar() {
+    double paddingTop = MediaQuery.of(context).padding.top;
     return Container(
-      height: 70,
+      height: 90,
       child: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        padding: EdgeInsets.only(left: 10, right: 10, top: paddingTop),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Icon(
               Icons.menu,
-              color: Colors.white,
+              color: Colors.white60,
               size: 30,
             ),
             Text(
@@ -166,7 +182,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
             ),
             Icon(
               Icons.person_outline,
-              color: Colors.white,
+              color: Colors.white60,
               size: 30,
             ),
           ],

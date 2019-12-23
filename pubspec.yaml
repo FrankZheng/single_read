@@ -26,6 +26,7 @@ dependencies:
   cached_network_image: ^2.0.0-rc
   dio: 3.0.7
   provider: ^3.2.0
+  url_launcher: ^5.4.1
 
 dev_dependencies:
   flutter_test:
