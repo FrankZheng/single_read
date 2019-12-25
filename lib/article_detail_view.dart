@@ -24,6 +24,72 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     );
   }
 
+  Widget buildThumbnailWidget(Article article) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height * 0.25;
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.black54,
+      child: Image.network(
+        '${article.thumbnail}',
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget buildContentWidget(Article article) {
+    if (article.model == ArticleModel.Text.index) {
+      //for text article, the html has thumbnail already
+      return buildWebView(article);
+    } else if (article.model == ArticleModel.Video.index ||
+        article.model == ArticleModel.Audio.index) {
+      return Column(
+        children: <Widget>[
+          buildThumbnailWidget(article),
+          Container(
+            color: Colors.red,
+            height: 2,
+          ),
+          Expanded(
+            child: buildWebView(article),
+          )
+        ],
+      );
+    } else {
+      return null;
+    }
+  }
+
+  Widget buildNavBarWidget() {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 40,
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+      child: Row(
+        children: <Widget>[
+          InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+                size: 30,
+              )),
+        ],
+      ),
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Colors.black.withAlpha((255 * 0.5).toInt()),
+            Colors.black.withAlpha((255 * 0.05).toInt())
+          ])),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double top = MediaQuery.of(context).padding.top;
@@ -38,16 +104,11 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           ),
           Padding(
             padding: EdgeInsets.only(top: top),
-            child: buildWebView(widget.article),
+            child: buildContentWidget(widget.article),
           ),
           Positioned(
-            child: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(Icons.arrow_back_ios, color: Colors.white)),
-            top: top + 5,
-            left: 5,
+            child: buildNavBarWidget(),
+            top: top,
           )
         ],
       ),

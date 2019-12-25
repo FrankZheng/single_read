@@ -184,19 +184,20 @@ class _ArticlePageViewState extends State<ArticlePageView> {
           children: <Widget>[
             Icon(
               Icons.menu,
-              color: Colors.white60,
+              color: Colors.white,
               size: 30,
             ),
             Text(
               '单读',
               style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 25,
-                  fontWeight: FontWeight.w100),
+                color: Colors.white,
+                fontSize: 25,
+                //fontWeight: FontWeight.w100
+              ),
             ),
             Icon(
               Icons.person_outline,
-              color: Colors.white60,
+              color: Colors.white,
               size: 30,
             ),
           ],
