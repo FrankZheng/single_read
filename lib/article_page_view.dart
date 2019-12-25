@@ -92,7 +92,10 @@ class _ArticlePageViewState extends State<ArticlePageView> {
               ),
               Spacer(),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: MediaQuery.of(context).padding.bottom),
                 child: Row(
                   children: <Widget>[
                     Icon(
@@ -118,7 +121,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
                     Text(article.good),
                     Spacer(),
                     Text(
-                      '${article.view} views',
+                      '${article.view}',
                       style: TextStyle(
                           color: Colors.black, fontStyle: FontStyle.italic),
                     ),
