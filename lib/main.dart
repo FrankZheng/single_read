@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,20 +59,27 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     const Duration duration = Duration(milliseconds: 1000);
     return Scaffold(
-        // appBar: AppBar(
-        //   title: Text(widget.title),
-        // ),
+        drawer: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          //color: Colors.black.withAlpha((255 * 0.5).toInt()),
+          child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                  decoration:
+                      BoxDecoration(color: Colors.black.withOpacity(0.5)))),
+        ),
         body: Stack(
-      children: <Widget>[
-        AnimatedOpacity(
-            duration: duration,
-            opacity: splashVisible ? 1.0 : 0.0,
-            child: SplashScreen()),
-        AnimatedOpacity(
-            duration: duration,
-            opacity: splashVisible ? 0.0 : 1.0,
-            child: MainView()),
-      ],
-    ));
+          children: <Widget>[
+            AnimatedOpacity(
+                duration: duration,
+                opacity: splashVisible ? 1.0 : 0.0,
+                child: SplashScreen()),
+            AnimatedOpacity(
+                duration: duration,
+                opacity: splashVisible ? 0.0 : 1.0,
+                child: MainView()),
+          ],
+        ));
   }
 }

@@ -185,10 +185,15 @@ class _ArticlePageViewState extends State<ArticlePageView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Icon(
-              Icons.menu,
-              color: Colors.white,
-              size: 30,
+            InkWell(
+              onTap: () {
+                Scaffold.of(context).openDrawer();
+              },
+              child: Icon(
+                Icons.menu,
+                color: Colors.white,
+                size: 30,
+              ),
             ),
             Text(
               '单读',
