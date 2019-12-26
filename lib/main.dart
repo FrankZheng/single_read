@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:single_read/drawer.dart';
 import 'package:single_read/main_view.dart';
 import 'package:single_read/splash_screen.dart';
 
@@ -13,7 +14,9 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarBrightness: Brightness.dark));
-  runApp(ChangeNotifierProvider.value(value: Model(), child: MyApp()));
+
+  var appModel = AppModel();
+  runApp(ChangeNotifierProvider.value(value: appModel, child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -59,16 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     const Duration duration = Duration(milliseconds: 1000);
     return Scaffold(
-        drawer: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          //color: Colors.black.withAlpha((255 * 0.5).toInt()),
-          child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                  decoration:
-                      BoxDecoration(color: Colors.black.withOpacity(0.5)))),
-        ),
+        drawer: CustomDrawer(),
         body: Stack(
           children: <Widget>[
             AnimatedOpacity(

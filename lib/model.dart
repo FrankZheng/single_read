@@ -103,7 +103,41 @@ class Article {
   }
 }
 
-class Model with ChangeNotifier {
+class AppModel with ChangeNotifier {
+  ArticleModel _articleModel = ArticleModel.Top;
+
+  ArticleModel get currentArticleModel => _articleModel;
+
+  void changeArticleModel(ArticleModel articleModel, bool loadArticles) {
+    if (articleModel != _articleModel) {
+      _articleModel = articleModel;
+      notifyListeners();
+
+      if (currentModel.articles.isEmpty) {
+        loadMoreArticles();
+      }
+    }
+  }
+
+  final Map<ArticleModel, Model> _models = {
+    ArticleModel.Top: Model(),
+    ArticleModel.Text: Model(model: ArticleModel.Text),
+    ArticleModel.Video: Model(model: ArticleModel.Video),
+    ArticleModel.Audio: Model(model: ArticleModel.Audio),
+    ArticleModel.Calendar: Model(model: ArticleModel.Calendar),
+  };
+
+  Model get currentModel => _models[_articleModel];
+
+  Future<void> loadMoreArticles() async {
+    await currentModel.loadMoreArticles();
+    notifyListeners();
+  }
+
+  List<Article> get articles => currentModel.articles;
+}
+
+class Model {
   //static Model shared = new Model();
   final Dio _dio;
   final ArticleModel _model;
@@ -116,47 +150,14 @@ class Model with ChangeNotifier {
   int _page = 1;
 
   List<Article> get articles => _articles;
-  ArticleModel get model => _model;
-
-  // Map<ArticleModel, List<Article>> articles = {
-  //   ArticleModel.Top: [],
-  //   ArticleModel.Text: [],
-  //   ArticleModel.Video: [],
-  //   ArticleModel.Audio: [],
-  //   ArticleModel.Calendar: [],
-  // };
-  // Map<ArticleModel, int> articlePages = {
-  //   ArticleModel.Top: 1,
-  //   ArticleModel.Text: 1,
-  //   ArticleModel.Video: 1,
-  //   ArticleModel.Audio: 1,
-  //   ArticleModel.Calendar: 1,
-  // };
-
-  Future<List<Article>> getTestArticles() async {
-    List<Article> articles = [];
-    String jsonStr = await rootBundle.loadString('assets/test_data.json');
-    Map<String, dynamic> jsonData = json.decode(jsonStr);
-    if (jsonData.containsKey('status') && jsonData['status'] == 'ok') {
-      if (jsonData.containsKey('code') && jsonData['code'] == 0) {
-        if (jsonData.containsKey('datas')) {
-          List<dynamic> data = jsonData['datas'];
-          for (Map<String, dynamic> a in data) {
-            articles.add(Article.fromJson(a));
-          }
-        }
-      }
-    }
-    return articles;
-  }
+  ArticleModel get articleModel => _model;
 
   Future<void> loadMoreArticles() async {
-    print('load more articles, page:$_page');
+    print('load more articles, page:$_page, model:$articleModel');
     List<Article> a = await getArticles(model: _model, page: _page);
     if (a.isNotEmpty) {
       _articles.addAll(a);
       _page++;
-      notifyListeners();
     }
   }
 

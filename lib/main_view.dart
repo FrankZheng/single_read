@@ -12,9 +12,16 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
+  final Map<ArticleModel, String> titles = {
+    ArticleModel.Top: '单 读',
+    ArticleModel.Text: '文 字',
+    ArticleModel.Audio: '声 音',
+    ArticleModel.Video: '影 像',
+    ArticleModel.Calendar: '单向历',
+  };
   final PageController pageController = new PageController();
 
-  Model get _model => Provider.of<Model>(context);
+  AppModel get _model => Provider.of<AppModel>(context);
 
   @override
   void initState() {
@@ -27,15 +34,18 @@ class _MainViewState extends State<MainView> {
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      itemCount: _model.articles.length,
-      scrollDirection: Axis.vertical,
-      controller: pageController,
-      onPageChanged: _onPageChanged,
-      itemBuilder: (context, index) {
-        return ArticlePageView(_model.articles[index]);
-      },
-    );
+    return Stack(children: <Widget>[
+      PageView.builder(
+        itemCount: _model.articles.length,
+        scrollDirection: Axis.vertical,
+        controller: pageController,
+        onPageChanged: _onPageChanged,
+        itemBuilder: (context, index) {
+          return ArticlePageView(_model.articles[index]);
+        },
+      ),
+      buildTopbar()
+    ]);
   }
 
   void _onPageChanged(int index) {
@@ -46,5 +56,52 @@ class _MainViewState extends State<MainView> {
       print('load more articles');
       _model.loadMoreArticles();
     }
+  }
+
+  Widget buildTopbar() {
+    double paddingTop = MediaQuery.of(context).padding.top;
+    return Container(
+      height: 90,
+      child: Padding(
+        padding: EdgeInsets.only(left: 10, right: 10, top: paddingTop),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            InkWell(
+              onTap: () {
+                Scaffold.of(context).openDrawer();
+              },
+              child: Icon(
+                Icons.menu,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+            Text(
+              titles[Provider.of<AppModel>(context).currentArticleModel],
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                //fontWeight: FontWeight.w100
+              ),
+            ),
+            Icon(
+              Icons.person_outline,
+              color: Colors.white,
+              size: 30,
+            ),
+          ],
+        ),
+      ),
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Colors.black.withAlpha((255 * 0.5).toInt()),
+            Colors.black.withAlpha((255 * 0.05).toInt())
+          ])),
+    );
   }
 }
