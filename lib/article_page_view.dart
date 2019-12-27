@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:single_read/article_detail_view.dart';
 import 'package:single_read/model.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,14 +16,6 @@ class ArticlePageView extends StatefulWidget {
 }
 
 class _ArticlePageViewState extends State<ArticlePageView> {
-  final Map<ArticleModel, String> titles = {
-    ArticleModel.Top: '单 读',
-    ArticleModel.Text: '文 字',
-    ArticleModel.Audio: '声 音',
-    ArticleModel.Video: '影 像',
-    ArticleModel.Calendar: '单向历',
-  };
-
   Widget buildArticleContentView(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
@@ -139,7 +130,6 @@ class _ArticlePageViewState extends State<ArticlePageView> {
               )
             ],
           ),
-          //buildTopbar(),
         ],
       ),
     );
@@ -178,56 +168,8 @@ class _ArticlePageViewState extends State<ArticlePageView> {
             height: height,
             child: Image.network('${article.thumbnail}', fit: BoxFit.fill),
           ),
-          //buildTopbar(),
         ],
       ),
-    );
-  }
-
-  Widget buildTopbar() {
-    double paddingTop = MediaQuery.of(context).padding.top;
-    return Container(
-      height: 90,
-      child: Padding(
-        padding: EdgeInsets.only(left: 10, right: 10, top: paddingTop),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            InkWell(
-              onTap: () {
-                Scaffold.of(context).openDrawer();
-              },
-              child: Icon(
-                Icons.menu,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            Text(
-              titles[Provider.of<AppModel>(context).currentArticleModel],
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                //fontWeight: FontWeight.w100
-              ),
-            ),
-            Icon(
-              Icons.person_outline,
-              color: Colors.white,
-              size: 30,
-            ),
-          ],
-        ),
-      ),
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-            Colors.black.withAlpha((255 * 0.5).toInt()),
-            Colors.black.withAlpha((255 * 0.05).toInt())
-          ])),
     );
   }
 

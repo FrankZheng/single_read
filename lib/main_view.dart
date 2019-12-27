@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:single_read/article_list_view.dart';
 
 import 'article_page_view.dart';
 import 'model.dart';
@@ -34,18 +35,36 @@ class _MainViewState extends State<MainView> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: <Widget>[
-      PageView.builder(
-        itemCount: _model.articles.length,
-        scrollDirection: Axis.vertical,
-        controller: pageController,
-        onPageChanged: _onPageChanged,
-        itemBuilder: (context, index) {
-          return ArticlePageView(_model.articles[index]);
-        },
-      ),
-      buildTopbar()
-    ]);
+    return contentWidget();
+  }
+
+  Widget contentWidget() {
+    final articleModel = Provider.of<AppModel>(context).currentArticleModel;
+    if (articleModel == ArticleModel.Top) {
+      return Stack(children: <Widget>[
+        PageView.builder(
+          itemCount: _model.articles.length,
+          scrollDirection: Axis.vertical,
+          controller: pageController,
+          onPageChanged: _onPageChanged,
+          itemBuilder: (context, index) {
+            return ArticlePageView(_model.articles[index]);
+          },
+        ),
+        buildTopbar()
+      ]);
+    } else if (articleModel == ArticleModel.Text ||
+        articleModel == ArticleModel.Video ||
+        articleModel == ArticleModel.Audio) {
+      return Column(
+        children: <Widget>[
+          buildTopbar(false),
+          Expanded(child: ArticleListView()),
+        ],
+      );
+    } else {
+      return null;
+    }
   }
 
   void _onPageChanged(int index) {
@@ -58,7 +77,7 @@ class _MainViewState extends State<MainView> {
     }
   }
 
-  Widget buildTopbar() {
+  Widget buildTopbar([bool transparentBackground = true]) {
     double paddingTop = MediaQuery.of(context).padding.top;
     return Container(
       height: 90,
@@ -94,14 +113,16 @@ class _MainViewState extends State<MainView> {
           ],
         ),
       ),
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-            Colors.black.withAlpha((255 * 0.5).toInt()),
-            Colors.black.withAlpha((255 * 0.05).toInt())
-          ])),
+      decoration: transparentBackground
+          ? BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                  Colors.black.withAlpha((255 * 0.5).toInt()),
+                  Colors.black.withAlpha((255 * 0.05).toInt())
+                ]))
+          : BoxDecoration(color: Colors.black),
     );
   }
 }

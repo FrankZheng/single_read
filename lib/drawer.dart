@@ -88,10 +88,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                   menuTextItem('单向历', ArticleModel.Calendar),
                   Spacer(),
-                  Text(
-                    'Powered by OWSPACE',
-                    style: TextStyle(
-                        color: Colors.white60, fontWeight: FontWeight.w300),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Powered by OWSPACE',
+                      style: TextStyle(
+                          color: Colors.white60, fontWeight: FontWeight.w300),
+                    ),
                   ),
                 ],
               )),
