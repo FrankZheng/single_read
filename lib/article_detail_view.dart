@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -59,7 +57,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   }
 
   Widget buildContentWidget(Article article) {
-    if (article.model == ArticleModel.Text.index) {
+    if (article.model == ArticleModel.Text.index ||
+        article.model == ArticleModel.Calendar.index) {
       //for text article, the html has thumbnail already
       return buildWebView(article);
     } else if (article.model == ArticleModel.Video.index ||

@@ -29,16 +29,20 @@ class _ArticleListViewState extends State<ArticleListView> {
             );
           },
           child: ListTile(
+            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             leading: Image.network(
               article.thumbnail,
-              width: 100,
-              height: 75,
+              width: 80,
+              height: 80,
               fit: BoxFit.cover,
             ),
-            title: Text(article.title),
+            title: Text(
+              article.title,
+              style: TextStyle(fontSize: 20),
+            ),
             subtitle: Text(
               article.author,
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: Colors.grey, fontSize: 18),
             ),
             trailing: Icon(Icons.arrow_forward_ios),
           ),

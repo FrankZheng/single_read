@@ -3,6 +3,8 @@ import 'package:single_read/article_detail_view.dart';
 import 'package:single_read/model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'model.dart';
+
 class ArticlePageView extends StatefulWidget {
   final Article article;
 
@@ -19,6 +21,8 @@ class _ArticlePageViewState extends State<ArticlePageView> {
     double thumbnailHeight = height * 0.35;
     if (article.model == 5) {
       return buildPosterView(article);
+    } else if (article.model == 4) {
+      return buildCalendarWidget(article);
     } else {
       return buildBaseArticleContentView(
           article, buildThumbnailWidget(article, width, thumbnailHeight));
@@ -163,9 +167,21 @@ class _ArticlePageViewState extends State<ArticlePageView> {
           Container(
             width: width,
             height: height,
-            child: Image.network('${article.thumbnail}', fit: BoxFit.fill),
+            child: Image.network(article.thumbnail, fit: BoxFit.fill),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget buildCalendarWidget(Article article) {
+    return InkWell(
+      onTap: () => onArticleTapped(article),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Center(
+          child: Image.network(article.thumbnail, fit: BoxFit.cover),
+        ),
       ),
     );
   }

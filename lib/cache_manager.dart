@@ -63,6 +63,21 @@ enum _State {
   Running,
 }
 
+class CacheTaskRunner {
+  final CachePrority prority;
+  final PriorityQueue<CacheTask> taskQueue;
+  final Duration sleepDuration;
+  CacheTaskRunner({this.taskQueue, this.prority, this.sleepDuration});
+
+  Future<void> run() async {
+    //pick task from the queue, check if the same priority
+    while (taskQueue.isNotEmpty) {
+      CacheTask task = taskQueue.first;
+      if (task.prority == prority) {}
+    }
+  }
+}
+
 class CacheManager {
   static CacheManager shared = CacheManager();
   _State _state = _State.Paused;
@@ -128,6 +143,7 @@ class CacheManager {
     if (_tasks.containsKey(url)) {
       debugPrint('[$url] already in the task queue');
       CacheTask task = _tasks[url];
+      //TODO: change the task priority and refresh the task queue if possible.
       return task;
     }
 
@@ -136,8 +152,9 @@ class CacheManager {
     _taskQueue.add(task);
     _tasks[url] = task;
 
-    //perform caching is not running
+    //perform caching if it is not running
     _performCaching();
+    return task;
   }
 
   void _performCaching() {

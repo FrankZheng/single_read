@@ -6,6 +6,7 @@ import 'package:single_read/article_list_view.dart';
 
 import 'article_page_view.dart';
 import 'model.dart';
+import 'model.dart';
 
 class MainView extends StatefulWidget {
   @override
@@ -40,7 +41,8 @@ class _MainViewState extends State<MainView> {
 
   Widget contentWidget() {
     final articleModel = Provider.of<AppModel>(context).currentArticleModel;
-    if (articleModel == ArticleModel.Top) {
+    if (articleModel == ArticleModel.Top ||
+        articleModel == ArticleModel.Calendar) {
       return Stack(children: <Widget>[
         PageView.builder(
           itemCount: _model.articles.length,
@@ -51,7 +53,7 @@ class _MainViewState extends State<MainView> {
             return ArticlePageView(_model.articles[index]);
           },
         ),
-        buildTopbar()
+        buildTopbar(articleModel == ArticleModel.Top)
       ]);
     } else if (articleModel == ArticleModel.Text ||
         articleModel == ArticleModel.Video ||
