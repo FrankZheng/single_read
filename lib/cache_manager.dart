@@ -63,21 +63,6 @@ enum _State {
   Running,
 }
 
-class CacheTaskRunner {
-  final CachePrority prority;
-  final PriorityQueue<CacheTask> taskQueue;
-  final Duration sleepDuration;
-  CacheTaskRunner({this.taskQueue, this.prority, this.sleepDuration});
-
-  Future<void> run() async {
-    //pick task from the queue, check if the same priority
-    while (taskQueue.isNotEmpty) {
-      CacheTask task = taskQueue.first;
-      if (task.prority == prority) {}
-    }
-  }
-}
-
 class CacheManager {
   static CacheManager shared = CacheManager();
   _State _state = _State.Paused;
@@ -143,7 +128,6 @@ class CacheManager {
     if (_tasks.containsKey(url)) {
       debugPrint('[$url] already in the task queue');
       CacheTask task = _tasks[url];
-      //TODO: change the task priority and refresh the task queue if possible.
       return task;
     }
 
@@ -152,9 +136,8 @@ class CacheManager {
     _taskQueue.add(task);
     _tasks[url] = task;
 
-    //perform caching if it is not running
+    //perform caching is not running
     _performCaching();
-    return task;
   }
 
   void _performCaching() {
@@ -179,15 +162,15 @@ class CacheManager {
 
   Future<void> _performTask(CacheTask task) async {
     try {
+      //here dio directly save the image to file
+      //may use another api to get the memory bytes directly
+      //then return the memory bytes directly
       String saveFilePath = await _getCacheFilePath(task.url);
       await _dio.download(task.url, saveFilePath);
+      task.cachedFile = File(saveFilePath);
     } on DioError catch (e) {
       print('Failed to download [$url], ${e.toString()}');
     }
-  }
-
-  Future<void> _onCached(String url, File file) async {
-    //cache to disk or file
   }
 
   Future<String> _getCacheFilePath(String url) async {

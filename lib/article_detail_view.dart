@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:single_read/audio_player_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -45,14 +46,30 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   Widget buildThumbnailWidget(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height * 0.25;
+    Widget imgWidget = Image.network(
+      article.thumbnail,
+      fit: BoxFit.cover,
+    );
+    Widget child = imgWidget;
+    if (article.model == ArticleModel.Audio.index) {
+      child = Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          imgWidget,
+          AudioPlayerCoverView(
+            article: article,
+            coverWidth: width,
+            coverHeight: height,
+          )
+        ],
+      );
+    }
+
     return Container(
       width: width,
       height: height,
       color: Colors.black54,
-      child: Image.network(
-        '${article.thumbnail}',
-        fit: BoxFit.cover,
-      ),
+      child: child,
     );
   }
 

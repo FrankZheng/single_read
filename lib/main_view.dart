@@ -6,7 +6,6 @@ import 'package:single_read/article_list_view.dart';
 
 import 'article_page_view.dart';
 import 'model.dart';
-import 'model.dart';
 
 class MainView extends StatefulWidget {
   @override
