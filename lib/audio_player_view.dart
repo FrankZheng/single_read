@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'model.dart';
 
 enum PlayerState {
@@ -46,14 +47,23 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
     audioPlayer.setUrl(widget.article.fm);
 
     durationSubscription = audioPlayer.onDurationChanged.listen((Duration dur) {
-      debugPrint('duration is $dur');
-      setState(() {
-        audioDuration = dur;
-      });
+      //debugPrint('duration is $dur');
+      if (audioDuration == null) {
+        durationSubscription.cancel();
+        durationSubscription = null;
+        setState(() {
+          audioDuration = dur;
+        });
+      }
     });
 
     audioPositionSubscription =
         audioPlayer.onAudioPositionChanged.listen((Duration pos) {
+      //debugPrint('postion update:$currentPosition');
+      if (pos.inSeconds == currentPosition.inSeconds) {
+        //remove unnessary updates
+        return;
+      }
       setState(() {
         currentPosition = pos;
         if (currentPosition.inMilliseconds > 0 &&
@@ -133,6 +143,8 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
               onTap: () async {
                 if (state == PlayerState.Playing) {
                   await audioPlayer.pause();
+                } else if (state == PlayerState.Completed) {
+                  await audioPlayer.play(widget.article.fm);
                 } else {
                   await audioPlayer.resume();
                 }
@@ -147,9 +159,38 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
               width: 10,
             ),
             Text(
-                //TODO: use a monospaced font here
                 '${formatDuration(currentPosition)} / ${formatDuration(audioDuration)}',
-                style: TextStyle(color: Colors.white)),
+                style: GoogleFonts.roboto(
+                    textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal))),
+            Expanded(
+              child: Slider(
+                activeColor: Colors.red,
+                inactiveColor: Colors.white,
+                min: 0,
+                max: audioDuration.inMilliseconds.toDouble(),
+                value: currentPosition.inMilliseconds.toDouble(),
+                onChangeStart: (value) {
+                  //debugPrint('slider value start change: $value');
+                  audioPositionSubscription.pause();
+                },
+                onChangeEnd: (value) async {
+                  //debugPrint('slider value end change: $value');
+                  await audioPlayer.seek(Duration(milliseconds: value.toInt()));
+                  Timer(Duration(seconds: 1), () {
+                    audioPositionSubscription.resume();
+                  });
+                },
+                onChanged: (value) {
+                  //debugPrint('slider value changed: $value');
+                  setState(() {
+                    currentPosition = Duration(milliseconds: value.toInt());
+                  });
+                },
+              ),
+            )
           ],
         ),
         decoration: BoxDecoration(
