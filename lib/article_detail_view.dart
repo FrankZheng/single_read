@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'model.dart';
+import 'video_player_view.dart';
 
 class ArticleDetailView extends StatefulWidget {
   final Article article;
@@ -51,16 +52,23 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       fit: BoxFit.cover,
     );
     Widget child = imgWidget;
-    if (article.model == ArticleModel.Audio.index) {
+    if (article.model == ArticleModel.Audio.index ||
+        article.model == ArticleModel.Video.index) {
       child = Stack(
         fit: StackFit.expand,
         children: <Widget>[
           imgWidget,
-          AudioPlayerCoverView(
-            article: article,
-            coverWidth: width,
-            coverHeight: height,
-          )
+          article.model == ArticleModel.Audio.index
+              ? AudioPlayerCoverView(
+                  article: article,
+                  coverWidth: width,
+                  coverHeight: height,
+                )
+              : VideoPlayerView(
+                  article: article,
+                  coverWidth: width,
+                  coverHeight: height,
+                )
         ],
       );
     }
@@ -97,10 +105,11 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     }
   }
 
-  Widget buildNavBarWidget() {
+  Widget buildNavBarWidget(
+      [double height = 40, bool transparentBackground = true]) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: 40,
+      height: height,
       padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
       child: Row(
         children: <Widget>[
@@ -115,20 +124,24 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
               )),
         ],
       ),
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-            Colors.black.withAlpha((255 * 0.5).toInt()),
-            Colors.black.withAlpha((255 * 0.05).toInt())
-          ])),
+      decoration: transparentBackground
+          ? BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                  Colors.black.withAlpha((255 * 0.5).toInt()),
+                  Colors.black.withAlpha((255 * 0.05).toInt())
+                ]))
+          : BoxDecoration(color: Colors.black),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     double top = MediaQuery.of(context).padding.top;
+    double navBarHeight = 58;
+    bool showNavBar = widget.article.model == ArticleModel.Video.index;
     return Scaffold(
         body: SafeArea(
       top: false,
@@ -139,11 +152,12 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             color: Colors.black,
           ),
           Padding(
-            padding: EdgeInsets.only(top: top),
+            padding:
+                EdgeInsets.only(top: showNavBar ? top + navBarHeight : top),
             child: buildContentWidget(widget.article),
           ),
           Positioned(
-            child: buildNavBarWidget(),
+            child: buildNavBarWidget(navBarHeight, !showNavBar),
             top: top,
           )
         ],
