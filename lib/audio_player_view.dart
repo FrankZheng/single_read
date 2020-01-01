@@ -40,6 +40,7 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
   StreamSubscription durationSubscription;
   StreamSubscription audioPositionSubscription;
   StreamSubscription playerStateSubscription;
+  //TODO: handle error subscription
 
   @override
   void initState() {
@@ -111,22 +112,23 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
   Widget coverWidget() {
     return Center(
       child: InkWell(
-        onTap: () {
-          setState(() {
-            audioPlayer.resume();
-          });
-        },
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.grey),
-          child: state == PlayerState.Stopped
-              ? Icon(Icons.play_arrow, color: Colors.white, size: 40)
-              : CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-        ),
-      ),
+          onTap: () {
+            setState(() {
+              audioPlayer.resume();
+            });
+          },
+          child: state == PlayerState.Stopped || state == PlayerState.Completed
+              ? Container(
+                  width: 60,
+                  height: 60,
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: Colors.grey),
+                  child: Icon(Icons.music_note, color: Colors.white, size: 40))
+              : Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )),
     );
   }
 
