@@ -45,7 +45,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
 
   Widget buildThumbnailWidget(Article article) {
     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height * 0.25;
+    double height = width * 9 / 16;
     Widget imgWidget = Image.network(
       article.thumbnail,
       fit: BoxFit.cover,

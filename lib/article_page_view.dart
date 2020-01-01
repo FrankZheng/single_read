@@ -18,7 +18,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
   Widget buildArticleContentView(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    double thumbnailHeight = height * 0.35;
+    double thumbnailHeight = width * 3 / 4; //height * 0.35;
     if (article.model == 5) {
       return buildPosterView(article);
     } else if (article.model == 4) {

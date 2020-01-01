@@ -16,7 +16,7 @@ enum PlayerState {
 
 const Map<AudioPlayerState, PlayerState> StateMapping = {
   AudioPlayerState.STOPPED: PlayerState.Stopped,
-  AudioPlayerState.PLAYING: PlayerState.Preparing,
+  AudioPlayerState.PLAYING: PlayerState.Playing,
   AudioPlayerState.PAUSED: PlayerState.Paused,
   AudioPlayerState.COMPLETED: PlayerState.Completed,
 };
@@ -34,7 +34,7 @@ class AudioPlayerCoverView extends StatefulWidget {
 class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
   final AudioPlayer audioPlayer = new AudioPlayer();
   Duration audioDuration;
-  Duration currentPosition = Duration();
+  Duration currentPosition;
   PlayerState state = PlayerState.Stopped;
 
   StreamSubscription durationSubscription;
@@ -52,32 +52,34 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
       if (audioDuration == null) {
         durationSubscription.cancel();
         durationSubscription = null;
-        setState(() {
-          audioDuration = dur;
-        });
+        setState(() => audioDuration = dur);
       }
     });
 
     audioPositionSubscription =
         audioPlayer.onAudioPositionChanged.listen((Duration pos) {
-      //debugPrint('postion update:$currentPosition');
-      if (pos.inSeconds == currentPosition.inSeconds) {
+      //debugPrint('postion update:$pos');
+      if (currentPosition?.inSeconds == pos.inSeconds) {
         //remove unnessary updates
         return;
       }
       setState(() {
-        currentPosition = pos;
-        if (currentPosition.inMilliseconds > 0 &&
-            state == PlayerState.Preparing) {
+        if (state == PlayerState.Preparing) {
           state = PlayerState.Playing;
         }
+        currentPosition = pos;
       });
     });
+
     playerStateSubscription =
         audioPlayer.onPlayerStateChanged.listen((AudioPlayerState s) {
       print('Current player state: $s');
       setState(() {
-        state = StateMapping[s];
+        if (s == AudioPlayerState.PLAYING && currentPosition == null) {
+          state = PlayerState.Preparing;
+        } else {
+          state = StateMapping[s];
+        }
       });
     });
 
@@ -95,8 +97,9 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
 
   @override
   Widget build(BuildContext context) {
-    bool showCover =
-        state == PlayerState.Stopped || state == PlayerState.Preparing;
+    bool showCover = state == PlayerState.Stopped ||
+        state == PlayerState.Preparing ||
+        state == PlayerState.Completed;
     return Stack(
       children: <Widget>[
         showCover
@@ -111,24 +114,27 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
 
   Widget coverWidget() {
     return Center(
-      child: InkWell(
-          onTap: () {
-            setState(() {
-              audioPlayer.resume();
-            });
-          },
-          child: state == PlayerState.Stopped || state == PlayerState.Completed
-              ? Container(
+      child: state == PlayerState.Stopped || state == PlayerState.Completed
+          ? InkWell(
+              onTap: () {
+                if (state == PlayerState.Completed) {
+                  audioPlayer.play(widget.article.fm);
+                } else {
+                  audioPlayer.resume();
+                }
+              },
+              child: Container(
                   width: 60,
                   height: 60,
                   decoration:
                       BoxDecoration(shape: BoxShape.circle, color: Colors.grey),
-                  child: Icon(Icons.music_note, color: Colors.white, size: 40))
-              : Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )),
+                  child: Icon(Icons.music_note, color: Colors.white, size: 40)),
+            )
+          : Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
     );
   }
 
