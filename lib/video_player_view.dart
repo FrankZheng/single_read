@@ -14,11 +14,22 @@ class VideoPlayerView extends StatefulWidget {
 
 class _VideoPlayerViewState extends State<VideoPlayerView> {
   VideoPlayerController _controller;
+  VoidCallback _listener;
+  bool _orderToPlay = false;
+
+  _VideoPlayerViewState() {
+    _listener = () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    };
+  }
 
   Future<void> _init() async {
     _controller = VideoPlayerController.network(widget.article.video);
-    await _controller.initialize();
-    setState(() {});
+    _controller.addListener(_listener);
+    _controller.initialize();
   }
 
   @override
@@ -30,13 +41,66 @@ class _VideoPlayerViewState extends State<VideoPlayerView> {
   @override
   void dispose() {
     super.dispose();
+    _controller.removeListener(_listener);
     _controller?.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_controller == null) {
-      return Container();
+    print('build widget, $_orderToPlay, ${_controller.value.initialized}');
+
+    if (!_orderToPlay) {
+      if (_controller.value.initialized) {
+        return Stack(children: <Widget>[
+          Opacity(
+            opacity: 0.0,
+            child: Container(
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: InkWell(
+                onTap: () {
+                  _controller.play();
+                  setState(() {
+                    _orderToPlay = true;
+                  });
+                },
+                child: Icon(
+                  Icons.play_arrow,
+                  color: Colors.white,
+                  size: 40,
+                )),
+          ),
+        ]);
+      }
+    } else {
+      return Stack(children: <Widget>[
+        Container(
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: VideoPlayer(_controller),
+            ),
+          ),
+        ),
+        Center(
+          child: InkWell(
+              onTap: () {
+                _controller.pause();
+              },
+              child: Icon(
+                Icons.pause,
+                color: Colors.white,
+                size: 40,
+              )),
+        ),
+      ]);
     }
 
     if (_controller.value.initialized) {
