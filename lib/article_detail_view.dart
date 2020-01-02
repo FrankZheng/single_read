@@ -141,7 +141,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   Widget build(BuildContext context) {
     double top = MediaQuery.of(context).padding.top;
     double navBarHeight = 58;
-    bool showNavBar = widget.article.model == ArticleModel.Video.index;
+    bool showNavBar = false; //widget.article.model == ArticleModel.Video.index;
     return Scaffold(
         body: SafeArea(
       top: false,
