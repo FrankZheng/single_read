@@ -4,6 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'model.dart';
+import 'utils.dart';
 
 enum PlayerState {
   Stopped,
@@ -209,16 +210,5 @@ class _AudioPlayerCoverViewState extends State<AudioPlayerCoverView> {
               Colors.black.withAlpha((255 * 0.3).toInt()),
               Colors.black.withAlpha((255 * 0.5).toInt())
             ])));
-  }
-
-  String formatDuration(Duration duration) {
-    int hours = duration.inHours;
-    int minutes = duration.inMinutes % 60;
-    int seconds = duration.inSeconds % 60;
-    if (hours > 0) {
-      return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    } else {
-      return '$minutes:${seconds.toString().padLeft(2, '0')}';
-    }
   }
 }

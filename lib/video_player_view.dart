@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:single_read/model.dart';
+import 'package:single_read/utils.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPlayerView extends StatefulWidget {
@@ -47,91 +49,102 @@ class _VideoPlayerViewState extends State<VideoPlayerView> {
 
   @override
   Widget build(BuildContext context) {
-    print('build widget, $_orderToPlay, ${_controller.value.initialized}');
+    print('build widget, $_orderToPlay, ${_controller.value}');
 
     if (!_orderToPlay) {
       if (_controller.value.initialized) {
         return Stack(children: <Widget>[
-          Opacity(
-            opacity: 0.0,
-            child: Container(
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                ),
-              ),
-            ),
-          ),
-          Center(
-            child: InkWell(
-                onTap: () {
-                  _controller.play();
-                  setState(() {
-                    _orderToPlay = true;
-                  });
-                },
-                child: Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 40,
-                )),
-          ),
+          videoPlayerWidget(hide: true),
+          playPauseWidget(play: true)
         ]);
+      } else {
+        return playPauseWidget(play: true);
       }
     } else {
-      return Stack(children: <Widget>[
-        Container(
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
-            ),
-          ),
-        ),
-        Center(
-          child: InkWell(
-              onTap: () {
-                _controller.pause();
-              },
-              child: Icon(
-                Icons.pause,
-                color: Colors.white,
-                size: 40,
-              )),
-        ),
-      ]);
+      if (_controller.value.initialized) {
+        return Stack(children: <Widget>[
+          videoPlayerWidget(hide: false),
+          _controller.value.isBuffering
+              ? loadingIndicator()
+              : playPauseWidget(play: !_controller.value.isPlaying),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: videoProgressIndicator(),
+          )
+        ]);
+      } else {
+        return loadingIndicator();
+      }
     }
+  }
 
-    if (_controller.value.initialized) {
-      return Stack(
-        children: <Widget>[
-          Container(
-            color: Colors.black,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
+  Widget videoPlayerWidget({bool hide}) {
+    Widget content = Container(
+      color: Colors.black,
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: VideoPlayer(_controller),
+        ),
+      ),
+    );
+    return hide ? Opacity(opacity: 0.0, child: content) : content;
+  }
+
+  Widget playPauseWidget({bool play}) {
+    return Container(
+      child: Center(
+        child: InkWell(
+          onTap: () {
+            if (play) {
+              _orderToPlay = true;
+              _controller.play();
+            } else {
+              _controller.pause();
+            }
+          },
+          child: Icon(
+            play ? Icons.play_arrow : Icons.pause,
+            size: 40,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget loadingIndicator() {
+    return Center(
+        child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
+  }
+
+  Widget videoProgressIndicator() {
+    //current position / duration
+    //progress indicator
+    TextStyle textStyle =
+        GoogleFonts.roboto(textStyle: TextStyle(color: Colors.white));
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: <Widget>[
+              Text(
+                '${formatDuration(_controller.value.position)}',
+                style: textStyle,
               ),
-            ),
+              Spacer(),
+              Text(
+                '${formatDuration(_controller.value.duration)}',
+                style: textStyle,
+              ),
+            ],
           ),
-          Center(
-            child: InkWell(
-                onTap: () {
-                  _controller.play();
-                },
-                child: Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 40,
-                )),
-          ),
-        ],
-      );
-    } else {
-      return Center(
-          child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white)));
-    }
+        ),
+        VideoProgressIndicator(_controller, allowScrubbing: true)
+      ],
+    );
   }
 }
