@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:single_read/video_article_detail_view.dart';
 
 import 'article_detail_view.dart';
 import 'model.dart';
@@ -19,15 +20,7 @@ class _ArticleListViewState extends State<ArticleListView> {
       itemBuilder: (BuildContext context, int index) {
         final Article article = articles[index];
         return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ArticleDetailView(
-                        article: article,
-                      )),
-            );
-          },
+          onTap: () => _onItemTap(article),
           child: ListTile(
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             leading: Image.network(
@@ -54,5 +47,17 @@ class _ArticleListViewState extends State<ArticleListView> {
         );
       },
     );
+  }
+
+  void _onItemTap(Article article) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return article.model == ArticleModel.Video.index
+          ? VideoArticleDetailView(
+              article: article,
+            )
+          : ArticleDetailView(
+              article: article,
+            );
+    }));
   }
 }
