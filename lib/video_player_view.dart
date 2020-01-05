@@ -49,7 +49,7 @@ class _VideoPlayerViewState extends State<VideoPlayerView> {
 
   @override
   Widget build(BuildContext context) {
-    print('build widget, $_orderToPlay, ${_controller.value}');
+    //print('build widget, $_orderToPlay, ${_controller.value}');
 
     if (!_orderToPlay) {
       if (_controller.value.initialized) {

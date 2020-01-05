@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:single_read/article_webview.dart';
 import 'package:single_read/audio_player_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -15,35 +16,6 @@ class ArticleDetailView extends StatefulWidget {
 }
 
 class _ArticleDetailViewState extends State<ArticleDetailView> {
-  Widget buildWebView(Article article) {
-    final String url =
-        '${article.html5}?client=iOS&device_id=866963027059338&version=1.3.0';
-    //print(url);
-    return WebView(
-      initialUrl: url,
-      javascriptMode: JavascriptMode.unrestricted,
-      navigationDelegate: (navigation) async {
-        print('navigation: ${navigation.url}');
-        String nurl = navigation.url;
-        if (nurl == url) {
-          return NavigationDecision.navigate;
-        }
-        if (nurl.startsWith('http://static.owspace.com/wap/')) {
-          //open another article
-          //here need parse the article id out and check the article model by api first
-        } else {
-          //user external browser to open the url
-          if (await canLaunch(nurl)) {
-            await launch(nurl);
-          } else {
-            print('can not launch $nurl');
-          }
-        }
-        return NavigationDecision.prevent;
-      },
-    );
-  }
-
   Widget buildThumbnailWidget(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = width * 9 / 16;
@@ -85,7 +57,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     if (article.model == ArticleModel.Text.index ||
         article.model == ArticleModel.Calendar.index) {
       //for text article, the html has thumbnail already
-      return buildWebView(article);
+      return ArticleWebView(article: article);
     } else if (article.model == ArticleModel.Video.index ||
         article.model == ArticleModel.Audio.index) {
       return Column(
@@ -96,7 +68,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             height: 2,
           ),
           Expanded(
-            child: buildWebView(article),
+            child: ArticleWebView(article: article),
           )
         ],
       );
