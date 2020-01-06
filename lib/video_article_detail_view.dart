@@ -148,6 +148,7 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
             ]);
       } else {
         child = Stack(fit: StackFit.expand, children: <Widget>[
+          imgCoverWidget(),
           loadingIndicator(),
         ]);
       }
@@ -213,41 +214,72 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
     //progress indicator
     TextStyle textStyle = GoogleFonts.roboto(
         textStyle: TextStyle(color: Colors.white, fontSize: 14));
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            children: <Widget>[
-              Text(
-                '${formatDuration(_controller.value.position)}',
-                style: textStyle,
-              ),
-              Spacer(),
-              Text(
-                '${formatDuration(_controller.value.duration)}',
-                style: textStyle,
-              ),
-              SizedBox(
-                width: 5,
-              ),
-              InkWell(
-                onTap: _fullscreen ? _exitFullscreen : _enterFullscreen,
-                child: _fullscreen
-                    ? Icon(Icons.fullscreen_exit, color: Colors.white, size: 24)
-                    : Icon(
-                        Icons.fullscreen,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-              ),
-            ],
-          ),
-        ),
-        VideoProgressIndicator(_controller, allowScrubbing: true)
-      ],
+    Text currentPosWidget = Text(
+      '${formatDuration(_controller.value.position)}',
+      style: textStyle,
     );
+    Text totalDurWidget = Text(
+      '${formatDuration(_controller.value.duration)}',
+      style: textStyle,
+    );
+    Widget fullscreenCtrl = InkWell(
+      onTap: _fullscreen ? _exitFullscreen : _enterFullscreen,
+      child: _fullscreen
+          ? Icon(Icons.fullscreen_exit, color: Colors.white, size: 24)
+          : Icon(
+              Icons.fullscreen,
+              color: Colors.white,
+              size: 24,
+            ),
+    );
+    Widget videoProgressIndicator = VideoProgressIndicator(
+      _controller,
+      allowScrubbing: true,
+      padding: EdgeInsets.zero,
+    );
+
+    return !_fullscreen
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: <Widget>[
+                    currentPosWidget,
+                    Spacer(),
+                    totalDurWidget,
+                    SizedBox(
+                      width: 5,
+                    ),
+                    fullscreenCtrl,
+                  ],
+                ),
+              ),
+              videoProgressIndicator,
+            ],
+          )
+        : Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10, bottom: 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                currentPosWidget,
+                SizedBox(
+                  width: 10,
+                ),
+                Expanded(child: videoProgressIndicator),
+                SizedBox(
+                  width: 10,
+                ),
+                totalDurWidget,
+                SizedBox(
+                  width: 5,
+                ),
+                fullscreenCtrl
+              ],
+            ),
+          );
   }
 
   void _enterFullscreen() {
