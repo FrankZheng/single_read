@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:single_read/article_webview.dart';
-import 'package:single_read/audio_player_view.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-
+import 'article_webview.dart';
+import 'audio_player_view.dart';
 import 'model.dart';
-import 'video_player_view.dart';
 
 class ArticleDetailView extends StatefulWidget {
   final Article article;
@@ -24,23 +20,16 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       fit: BoxFit.cover,
     );
     Widget child = imgWidget;
-    if (article.model == ArticleModel.Audio.index ||
-        article.model == ArticleModel.Video.index) {
+    if (article.model == ArticleModel.Audio.index) {
       child = Stack(
         fit: StackFit.expand,
         children: <Widget>[
           imgWidget,
-          article.model == ArticleModel.Audio.index
-              ? AudioPlayerCoverView(
-                  article: article,
-                  coverWidth: width,
-                  coverHeight: height,
-                )
-              : VideoPlayerView(
-                  article: article,
-                  coverWidth: width,
-                  coverHeight: height,
-                )
+          AudioPlayerCoverView(
+            article: article,
+            coverWidth: width,
+            coverHeight: height,
+          )
         ],
       );
     }
@@ -58,8 +47,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         article.model == ArticleModel.Calendar.index) {
       //for text article, the html has thumbnail already
       return ArticleWebView(article: article);
-    } else if (article.model == ArticleModel.Video.index ||
-        article.model == ArticleModel.Audio.index) {
+    } else if (article.model == ArticleModel.Audio.index) {
       return Column(
         children: <Widget>[
           buildThumbnailWidget(article),

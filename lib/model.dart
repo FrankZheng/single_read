@@ -37,11 +37,9 @@
 "parseXML": 1
 */
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 enum ArticleModel { Top, Text, Video, Audio, Calendar, Activity }
