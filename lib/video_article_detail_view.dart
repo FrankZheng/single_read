@@ -6,7 +6,6 @@ import 'package:video_player/video_player.dart';
 import 'article_webview.dart';
 import 'model.dart';
 import 'utils.dart';
-//import 'video_player_view.dart';
 
 class VideoArticleDetailView extends StatefulWidget {
   final Article article;
@@ -19,8 +18,8 @@ class VideoArticleDetailView extends StatefulWidget {
 class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
   VideoPlayerController _controller;
   VoidCallback _listener;
-  bool _orderToPlay = false;
   bool _fullscreen = false;
+  bool _ctrlPanelVisible = false;
 
   _VideoArticleDetailViewState() {
     _listener = () {
@@ -41,19 +40,22 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
 
     _controller = VideoPlayerController.network(widget.article.video);
     _controller.addListener(_listener);
-    _controller.initialize();
+    _controller.initialize().then((_) {
+      _controller.play();
+    });
   }
 
   @override
   void dispose() {
     super.dispose();
+    _exitFullscreen();
     _controller.removeListener(_listener);
     _controller?.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print('build, $_fullscreen');
+    //print('build, ${_controller.value}');
     double top = MediaQuery.of(context).padding.top;
     //print('top: $top');
     Widget mixed = SafeArea(
@@ -78,38 +80,6 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
     return Scaffold(body: _fullscreen ? buildVideoWidget() : mixed);
   }
 
-  Widget buildNavBarWidget(
-      {double height = 40, bool transparentBackground = true}) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: height,
-      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-      child: Row(
-        children: <Widget>[
-          InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.white,
-                size: 30,
-              )),
-        ],
-      ),
-      decoration: transparentBackground
-          ? BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                  Colors.black.withAlpha((255 * 0.5).toInt()),
-                  Colors.black.withAlpha((255 * 0.05).toInt())
-                ]))
-          : BoxDecoration(color: Colors.black),
-    );
-  }
-
   Widget imgCoverWidget() {
     return Image.network(
       widget.article.thumbnail,
@@ -125,79 +95,93 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
     }
     //print('$width, $height');
     Stack child;
-    if (!_orderToPlay) {
+    if (_controller.value.initialized) {
+      child = Stack(
+          fit: StackFit.expand,
+          alignment: Alignment.center,
+          children: <Widget>[
+            AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller)),
+            _controller.value.isBuffering
+                ? loadingIndicator()
+                : buildControlPanel()
+          ]);
+    } else {
       child = Stack(fit: StackFit.expand, children: <Widget>[
         imgCoverWidget(),
-        if (_controller.value.initialized) videoPlayerWidget(hide: true),
-        playPauseWidget(play: true),
+        loadingIndicator(),
       ]);
-    } else {
-      if (_controller.value.initialized) {
-        child = Stack(
-            fit: StackFit.expand,
-            alignment: Alignment.center,
+    }
+
+    return InkWell(
+      onTap: () {
+        //print('onTap');
+        setState(() {
+          _ctrlPanelVisible = !_ctrlPanelVisible;
+        });
+      },
+      child: Container(
+          width: width, height: height, color: Colors.black, child: child),
+    );
+  }
+
+  Widget buildControlPanel() {
+    return AnimatedOpacity(
+      duration: Duration(milliseconds: 500),
+      opacity: _ctrlPanelVisible ? 1.0 : 0.0,
+      child: Container(
+          color: Colors.black.withAlpha(150),
+          child: Stack(
+            alignment: Alignment.topLeft,
+            fit: StackFit.loose,
             children: <Widget>[
-              videoPlayerWidget(hide: false),
-              _controller.value.isBuffering
-                  ? loadingIndicator()
-                  : playPauseWidget(play: !_controller.value.isPlaying),
+              //nav bar, add top padding in the full screen mode
+              Padding(
+                padding: EdgeInsets.only(
+                    left: 5,
+                    right: 5,
+                    top: _fullscreen ? MediaQuery.of(context).padding.top : 5),
+                child: Row(
+                  children: <Widget>[
+                    InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                          size: 30,
+                        )),
+                  ],
+                ),
+              ),
+              playPauseWidget(play: !_controller.value.isPlaying),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: videoProgressIndicator(),
-              )
-            ]);
-      } else {
-        child = Stack(fit: StackFit.expand, children: <Widget>[
-          imgCoverWidget(),
-          loadingIndicator(),
-        ]);
-      }
-    }
-
-    if (!_fullscreen) {
-      child.children.add(
-        Align(
-            alignment: Alignment.topLeft,
-            child: buildNavBarWidget(height: 58, transparentBackground: true)),
-      );
-    }
-
-    return !_fullscreen
-        ? Container(
-            width: width, height: height, color: Colors.black, child: child)
-        : child;
-  }
-
-  Widget videoPlayerWidget({@required bool hide}) {
-    Widget content = Container(
-      color: Colors.black,
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-          child: VideoPlayer(_controller),
-        ),
-      ),
+              ),
+            ],
+          )),
     );
-    return hide ? Opacity(opacity: 0.0, child: content) : content;
   }
 
   Widget playPauseWidget({@required bool play}) {
-    return Container(
-      child: Center(
-        child: InkWell(
-          onTap: () {
-            if (play) {
-              _orderToPlay = true;
-              _controller.play();
-            } else {
-              _controller.pause();
-            }
-          },
-          child: Icon(
-            play ? Icons.play_arrow : Icons.pause,
-            size: 40,
-            color: Colors.white,
-          ),
+    return Center(
+      child: InkWell(
+        onTap: () {
+          if (play) {
+            _controller.play();
+            _ctrlPanelVisible = false;
+          } else {
+            _controller.pause();
+            _ctrlPanelVisible = true;
+          }
+        },
+        child: Icon(
+          play ? Icons.play_arrow : Icons.pause,
+          size: 60,
+          color: Colors.white,
         ),
       ),
     );
