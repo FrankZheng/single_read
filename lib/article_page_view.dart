@@ -63,26 +63,31 @@ class _ArticlePageViewState extends State<ArticlePageView> {
                 ),
               ),
               SizedBox(
-                height: 20,
+                height: 15,
               ),
               Text(
                 article.title,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 40),
+                style: TextStyle(fontSize: 36),
+                maxLines: 2,
               ),
               SizedBox(
-                height: 40,
+                height: 20,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  article.excerpt == null ? '' : article.excerpt,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20),
+                child: SizedBox(
+                  height: 100,
+                  child: Text(
+                    article.excerpt == null ? '' : article.excerpt,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 20),
+                    maxLines: 3,
+                  ),
                 ),
               ),
               Container(
-                margin: EdgeInsets.symmetric(vertical: 30),
+                margin: EdgeInsets.only(top: 30, bottom: 20),
                 width: 200,
                 height: 1,
                 color: Colors.grey,
@@ -90,13 +95,14 @@ class _ArticlePageViewState extends State<ArticlePageView> {
               Text(
                 article.author,
                 style: TextStyle(fontSize: 20),
+                maxLines: 1,
               ),
               Spacer(),
               Padding(
                 padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
-                    bottom: MediaQuery.of(context).padding.bottom),
+                    bottom: MediaQuery.of(context).padding.bottom + 10),
                 child: Row(
                   children: <Widget>[
                     Icon(

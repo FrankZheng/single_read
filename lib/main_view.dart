@@ -81,11 +81,11 @@ class _MainViewState extends State<MainView> {
   Widget buildTopbar([bool transparentBackground = true]) {
     double paddingTop = MediaQuery.of(context).padding.top;
     return Container(
-      height: 90,
+      height: 60,
       child: Padding(
         padding: EdgeInsets.only(left: 10, right: 10, top: paddingTop),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             InkWell(
@@ -101,8 +101,8 @@ class _MainViewState extends State<MainView> {
             Text(
               titles[Provider.of<AppModel>(context).currentArticleModel],
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+                color: Colors.white70,
+                fontSize: 20,
                 //fontWeight: FontWeight.w100
               ),
             ),
