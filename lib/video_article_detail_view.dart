@@ -77,7 +77,13 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
           ],
         ));
 
-    return Scaffold(body: _fullscreen ? buildVideoWidget() : mixed);
+    return _fullscreen
+        ? Scaffold(
+            backgroundColor: Colors.black,
+            body: SafeArea(child: buildVideoWidget()))
+        : Scaffold(
+            body: mixed,
+          );
   }
 
   Widget imgCoverWidget() {
