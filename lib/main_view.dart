@@ -81,11 +81,11 @@ class _MainViewState extends State<MainView> {
   Widget buildTopbar([bool transparentBackground = true]) {
     double paddingTop = MediaQuery.of(context).padding.top;
     return Container(
-      height: 60,
+      height: paddingTop + kToolbarHeight,
       child: Padding(
         padding: EdgeInsets.only(left: 10, right: 10, top: paddingTop),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             InkWell(

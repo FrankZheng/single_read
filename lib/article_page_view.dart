@@ -62,42 +62,46 @@ class _ArticlePageViewState extends State<ArticlePageView> {
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
-              SizedBox(
-                height: 15,
+              Spacer(flex: 2),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  article.title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 36),
+                  maxLines: 2,
+                ),
               ),
-              Text(
-                article.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 36),
-                maxLines: 2,
-              ),
-              SizedBox(
-                height: 20,
+              Spacer(
+                flex: 4,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: SizedBox(
-                  height: 100,
-                  child: Text(
-                    article.excerpt == null ? '' : article.excerpt,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 20),
-                    maxLines: 3,
-                  ),
+                child: Text(
+                  article.excerpt == null ? '' : article.excerpt,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                  maxLines: 3,
                 ),
               ),
+              Spacer(flex: 3),
               Container(
-                margin: EdgeInsets.only(top: 30, bottom: 20),
+                color: Colors.grey,
                 width: 200,
                 height: 1,
-                color: Colors.grey,
               ),
-              Text(
-                article.author,
-                style: TextStyle(fontSize: 20),
-                maxLines: 1,
+              Spacer(flex: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  article.author,
+                  style: TextStyle(fontSize: 20),
+                  maxLines: 1,
+                ),
               ),
-              Spacer(),
+              Spacer(
+                flex: 3,
+              ),
               Padding(
                 padding: EdgeInsets.only(
                     left: 16,
