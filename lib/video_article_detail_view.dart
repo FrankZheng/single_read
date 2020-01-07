@@ -58,26 +58,25 @@ class _VideoArticleDetailViewState extends State<VideoArticleDetailView> {
     //print('build, ${_controller.value}');
     double top = MediaQuery.of(context).padding.top;
     //print('top: $top');
-    Widget mixed = SafeArea(
-        top: false,
-        child: Column(
-          children: <Widget>[
-            Container(
-              height: top,
-              color: Colors.black,
-            ),
-            buildVideoWidget(),
-            Divider(
-              color: Colors.red,
-              height: 2,
-            ),
-            Expanded(
-              child: ArticleWebView(article: widget.article),
-            )
-          ],
-        ));
+    Widget mixed = Column(
+      children: <Widget>[
+        SizedBox(
+          height: top,
+        ),
+        buildVideoWidget(),
+        Divider(
+          color: Colors.red,
+          height: 2,
+        ),
+        Expanded(
+          child: ArticleWebView(article: widget.article),
+        )
+      ],
+    );
 
-    return Scaffold(body: _fullscreen ? buildVideoWidget() : mixed);
+    return Scaffold(
+        backgroundColor: Colors.black,
+        body: _fullscreen ? SafeArea(child: buildVideoWidget()) : mixed);
   }
 
   Widget imgCoverWidget() {

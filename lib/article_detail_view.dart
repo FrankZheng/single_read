@@ -66,7 +66,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   }
 
   Widget buildNavBarWidget(
-      [double height = 40, bool transparentBackground = true]) {
+      [double height = kToolbarHeight, bool transparentBackground = true]) {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: height,
@@ -100,28 +100,22 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   @override
   Widget build(BuildContext context) {
     double top = MediaQuery.of(context).padding.top;
-    double navBarHeight = 58;
+    double navBarHeight = kToolbarHeight;
     bool showNavBar = false; //widget.article.model == ArticleModel.Video.index;
     return Scaffold(
-        body: SafeArea(
-      top: false,
-      child: Stack(
-        children: <Widget>[
-          Container(
-            height: top,
-            color: Colors.black,
-          ),
-          Padding(
-            padding:
-                EdgeInsets.only(top: showNavBar ? top + navBarHeight : top),
-            child: buildContentWidget(widget.article),
-          ),
-          Positioned(
-            child: buildNavBarWidget(navBarHeight, !showNavBar),
-            top: top,
-          )
-        ],
-      ),
-    ));
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: <Widget>[
+            Padding(
+              padding:
+                  EdgeInsets.only(top: showNavBar ? top + navBarHeight : top),
+              child: buildContentWidget(widget.article),
+            ),
+            Positioned(
+              child: buildNavBarWidget(navBarHeight, !showNavBar),
+              top: top,
+            )
+          ],
+        ));
   }
 }
