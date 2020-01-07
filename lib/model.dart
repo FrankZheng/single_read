@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
@@ -31,6 +32,7 @@ class Article {
   final int parseXML;
   final int model;
   String data;
+  int rowId; //table id
 
   Article(
       {this.id,
@@ -52,36 +54,38 @@ class Article {
       this.updateTime,
       this.createTime,
       this.parseXML,
-      this.data});
+      this.data,
+      this.rowId});
 
-  factory Article.fromMap(Map<String, dynamic> json) {
+  factory Article.fromMap(Map<String, dynamic> map) {
     return Article(
-      id: json['id'],
-      uid: json['uid'],
-      title: json['title'],
-      excerpt: json['excerpt'],
-      lead: json['lead'],
-      thumbnail: json['thumbnail'],
-      video: json['video'],
-      fm: json['fm'],
-      view: json['view'].toString(),
-      html5: json['html5'],
-      comment: json['comment'].toString(),
-      good: json['good'].toString(),
-      author: json['author'],
-      avatar: json['avatar'],
-      category: json['category'],
-      model: int.parse(json['model'].toString()),
-      updateTime: json['update_time'].toString(),
-      createTime: int.parse(json['create_time'].toString()),
-      parseXML: json['parseXML'],
-      data: json['data'],
+      id: map['id'],
+      uid: map['uid'],
+      title: map['title'],
+      excerpt: map['excerpt'],
+      lead: map['lead'],
+      thumbnail: map['thumbnail'],
+      video: map['video'],
+      fm: map['fm'],
+      view: map['view'].toString(),
+      html5: map['html5'],
+      comment: map['comment'].toString(),
+      good: map['good'].toString(),
+      author: map['author'],
+      avatar: map['avatar'],
+      category: map['category'],
+      model: int.parse(map['model'].toString()),
+      updateTime: map['update_time'].toString(),
+      createTime: int.parse(map['create_time'].toString()),
+      parseXML: map['parseXML'],
+      data: map['data'],
+      rowId: map['row_id'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'article_id': id,
+      'id': id,
       'uid': uid,
       'title': title,
       'excerpt': excerpt,
@@ -158,13 +162,14 @@ class Model {
     if (_database != null) {
       return _database;
     }
-    _database = openDatabase(join(await getDatabasesPath(), DB_NAME),
-        onCreate: (db, version) {
+    //Sqflite.devSetDebugModeOn(true);
+    String dbPath = join(await getDatabasesPath(), DB_NAME);
+    print('dbPath:$dbPath');
+    _database = openDatabase(dbPath, onCreate: (db, version) {
       return db.execute('''
-            BEGIN;
             CREATE TABLE IF NOT EXISTS $ARTICLES_TABLE_NAME(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            article_id TEXT,
+            row_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT UNIQUE,
             uid TEXT,
             title TEXT,
             excerpt TEXT,
@@ -186,7 +191,6 @@ class Model {
             data TEXT);
             CREATE INDEX idx_articles_model ON articles (model);
             CREATE INDEX idx_articles_create_time ON articles (create_time);
-            COMMIT;
             ''');
     }, version: 1);
     return _database;
@@ -196,15 +200,16 @@ class Model {
   ArticleModel get articleModel => _model;
 
   Future<Map<String, Article>> loadMoreArticlesFromDB() async {
-    print(
-        'load more articles from db, pageSize:$_pageSize, offset:${_articles.length}:$articleModel');
+    debugPrint(
+        'load more articles from db, pageSize:$_pageSize, offset:${_articles.length}, $articleModel');
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(ARTICLES_TABLE_NAME,
-        where: 'model=?',
-        whereArgs: [_model.index],
+        where: _model == ArticleModel.Top ? null : 'model = ?',
+        whereArgs: _model == ArticleModel.Top ? null : [_model.index],
         orderBy: 'create_time DESC',
         limit: _pageSize,
         offset: _articles.length);
+    debugPrint('load ${maps.length} records from db');
 
     Map<String, Article> saved = {};
     for (Map<String, dynamic> map in maps) {
@@ -215,7 +220,7 @@ class Model {
   }
 
   Future<void> loadMoreArticles() async {
-    print('load more articles, page:$_page, model:$articleModel');
+    debugPrint('load more articles, page:$_page, model:$articleModel');
 
     List<Map<String, Article>> allArticles = await Future.wait(
         [loadMoreArticlesFromDB(), getArticles(model: _model, page: _page)]);
@@ -223,18 +228,22 @@ class Model {
     Map<String, Article> articles2 = allArticles[1];
 
     //merge the articles together
+    //TODO: need check if article has been updated, like view/good/comment
     List<Article> newArticles = [];
     for (String articleId in articles2.keys) {
       if (!articles1.containsKey(articleId)) {
         articles1[articleId] = articles2[articleId];
         newArticles.add(articles2[articleId]);
+      } else {
+        //update local articles
+        articles1[articleId] = articles2[articleId];
       }
     }
 
-    //merge and sort by create time
+    //sort by create time
     List<Article> merged = articles1.values.toList();
     merged.sort((a1, a2) {
-      return a1.createTime.compareTo(a2.createTime);
+      return a2.createTime.compareTo(a1.createTime);
     });
 
     if (merged.isNotEmpty) {
@@ -242,7 +251,14 @@ class Model {
       _page++;
     }
 
-    //TODO: save the new articles later
+    final db = await database;
+    for (Article article in newArticles) {
+      article.rowId = await db.insert(
+        ARTICLES_TABLE_NAME,
+        article.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
   }
 
   Future<Map<String, Article>> getArticles(
@@ -263,11 +279,11 @@ class Model {
         "device_id": 866963027059338, //figure out the random number logic later
         "show_sdv": 1
       });
-      Map<String, dynamic> jsonData = response.data as Map<String, dynamic>;
-      if (jsonData.containsKey('status') && jsonData['status'] == 'ok') {
-        if (jsonData.containsKey('code') && jsonData['code'] == 0) {
-          if (jsonData.containsKey('datas')) {
-            List<dynamic> data = jsonData['datas'];
+      Map<String, dynamic> mapData = response.data as Map<String, dynamic>;
+      if (mapData.containsKey('status') && mapData['status'] == 'ok') {
+        if (mapData.containsKey('code') && mapData['code'] == 0) {
+          if (mapData.containsKey('datas')) {
+            List<dynamic> data = mapData['datas'];
             for (Map<String, dynamic> a in data) {
               Article article = Article.fromMap(a);
               articles[article.id] = article;
