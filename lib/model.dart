@@ -6,6 +6,8 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 
+import 'utils.dart';
+
 const String DB_NAME = "app.db";
 const String ARTICLES_TABLE_NAME = 'articles';
 
@@ -74,10 +76,10 @@ class Article {
       author: map['author'],
       avatar: map['avatar'],
       category: map['category'],
-      model: int.parse(map['model'].toString()),
+      model: safeParseInt(map['model']),
       updateTime: map['update_time'].toString(),
-      createTime: int.parse(map['create_time'].toString()),
-      parseXML: map['parseXML'],
+      createTime: safeParseInt(map['create_time']),
+      parseXML: safeParseInt(map['parseXML']),
       data: map['data'],
       rowId: map['row_id'],
     );
@@ -253,6 +255,10 @@ class Model {
 
     final db = await database;
     for (Article article in newArticles) {
+      if (article.model == ArticleModel.Activity.index) {
+        //don't cache the activity article
+        continue;
+      }
       article.rowId = await db.insert(
         ARTICLES_TABLE_NAME,
         article.toMap(),
@@ -284,9 +290,18 @@ class Model {
         if (mapData.containsKey('code') && mapData['code'] == 0) {
           if (mapData.containsKey('datas')) {
             List<dynamic> data = mapData['datas'];
+            Article lastArticle;
             for (Map<String, dynamic> a in data) {
+              if (!a.containsKey('create_time')) {
+                //fix the create_time, activity doesn't have a create_time
+                int createTime = lastArticle != null
+                    ? lastArticle.createTime - 1
+                    : DateTime.now().millisecondsSinceEpoch ~/ 1000; //seconds
+                a['create_time'] = createTime.toString();
+              }
               Article article = Article.fromMap(a);
               articles[article.id] = article;
+              lastArticle = article;
             }
           }
         }

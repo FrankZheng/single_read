@@ -8,3 +8,7 @@ String formatDuration(Duration duration) {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
+
+int safeParseInt(dynamic data, {int radix, int fallbackValue = 0}) {
+  return int.tryParse(data.toString(), radix: radix) ?? fallbackValue;
+}

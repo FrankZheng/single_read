@@ -4,6 +4,7 @@ import 'package:single_read/model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'model.dart';
+import 'video_article_detail_view.dart';
 
 class ArticlePageView extends StatefulWidget {
   final Article article;
@@ -30,13 +31,15 @@ class _ArticlePageViewState extends State<ArticlePageView> {
   }
 
   void onArticleTapped(Article article) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => ArticleDetailView(
-                article: article,
-              )),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return article.model == ArticleModel.Video.index
+          ? VideoArticleDetailView(
+              article: article,
+            )
+          : ArticleDetailView(
+              article: article,
+            );
+    }));
   }
 
   Widget buildBaseArticleContentView(Article article, Widget thumbnailWidget) {
