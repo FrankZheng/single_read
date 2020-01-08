@@ -277,10 +277,10 @@ class Model {
 
     final db = await database;
     for (Article article in newArticles) {
-      if (article.model == ArticleModel.Activity.index) {
-        //don't cache the activity article
-        continue;
-      }
+      // if (article.model == ArticleModel.Activity.index) {
+      //   //don't cache the activity article
+      //   continue;
+      // }
       article.rowId = await db.insert(
         ARTICLES_TABLE_NAME,
         article.toMap(),
@@ -331,6 +331,7 @@ class Model {
               articles[article.id] = article;
               lastArticle = article;
             }
+            debugPrint('load ${articles.length} articles from server');
           }
         }
       }

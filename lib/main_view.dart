@@ -24,6 +24,8 @@ class _MainViewState extends State<MainView> {
 
   AppModel get _model => Provider.of<AppModel>(context);
 
+  int _currentPageIndex;
+
   @override
   void initState() {
     super.initState();
@@ -72,10 +74,12 @@ class _MainViewState extends State<MainView> {
     //each page has 11 articles
     print('curent index: $index, total: ${_model.articles.length}');
     final int prefetchPageCount = 3;
-    if (index == _model.articles.length - prefetchPageCount) {
+    if (index == _model.articles.length - prefetchPageCount &&
+        _currentPageIndex == index - 1) {
       print('load more articles');
       _model.loadMoreArticles();
     }
+    _currentPageIndex = index;
   }
 
   Widget buildTopbar([bool transparentBackground = true]) {
