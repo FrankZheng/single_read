@@ -108,6 +108,15 @@ class Article {
       'parseXML': parseXML,
     };
   }
+
+  bool operator ==(other) {
+    return other is Article &&
+        other.view == view &&
+        other.good == other.good &&
+        other.comment == comment;
+  }
+
+  int get hashCode => good.hashCode ^ view.hashCode ^ comment.hashCode;
 }
 
 class AppModel with ChangeNotifier {
@@ -148,7 +157,7 @@ class Model {
   //static Model shared = new Model();
   final Dio _dio;
   final ArticleModel _model;
-  final int _pageSize;
+  int _pageSize;
   Model({ArticleModel model = ArticleModel.Top})
       : _dio = Dio(),
         _model = model,
@@ -226,21 +235,32 @@ class Model {
 
     List<Map<String, Article>> allArticles = await Future.wait(
         [loadMoreArticlesFromDB(), getArticles(model: _model, page: _page)]);
-    Map<String, Article> articles1 = allArticles[0];
-    Map<String, Article> articles2 = allArticles[1];
+    Map<String, Article> articles1 = allArticles[0]; //local
+    Map<String, Article> articles2 = allArticles[1]; //remote
+    if (articles2.isNotEmpty) {
+      //fix the _pageSize by received articles
+      _pageSize = articles2.length;
+    }
 
     //merge the articles together
-    //TODO: need check if article has been updated, like view/good/comment
     List<Article> newArticles = [];
+    List<Article> modifiedArticles = [];
     for (String articleId in articles2.keys) {
+      Article article = articles2[articleId];
       if (!articles1.containsKey(articleId)) {
-        articles1[articleId] = articles2[articleId];
-        newArticles.add(articles2[articleId]);
+        newArticles.add(article);
       } else {
         //update local articles
-        articles1[articleId] = articles2[articleId];
+        Article oldArticle = articles1[articleId];
+        if (oldArticle != article) {
+          article.rowId = oldArticle.rowId; //for update db
+          modifiedArticles.add(article);
+        }
       }
+      articles1[articleId] = article;
     }
+    debugPrint('has ${newArticles.length} new articles');
+    debugPrint('has ${modifiedArticles.length} modified articles');
 
     //sort by create time
     List<Article> merged = articles1.values.toList();
@@ -249,7 +269,9 @@ class Model {
     });
 
     if (merged.isNotEmpty) {
-      _articles.addAll(merged);
+      //only add articles which amount <= _pageSize
+      _articles.addAll(merged.sublist(
+          0, merged.length > _pageSize ? _pageSize : merged.length));
       _page++;
     }
 
@@ -264,6 +286,12 @@ class Model {
         article.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+    }
+    //update modified articles
+    //for now we only check if the social data updated
+    for (Article article in modifiedArticles) {
+      await db.update(ARTICLES_TABLE_NAME, article.toMap(),
+          where: 'row_id = ?', whereArgs: [article.rowId]);
     }
   }
 

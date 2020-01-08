@@ -71,8 +71,8 @@ class _MainViewState extends State<MainView> {
   void _onPageChanged(int index) {
     //each page has 11 articles
     print('curent index: $index, total: ${_model.articles.length}');
-    int numPerPage = 11;
-    if (index == _model.articles.length - numPerPage ~/ 2) {
+    final int prefetchPageCount = 3;
+    if (index == _model.articles.length - prefetchPageCount) {
       print('load more articles');
       _model.loadMoreArticles();
     }
