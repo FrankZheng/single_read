@@ -15,6 +15,30 @@ const String ARTICLES_TABLE_NAME = 'articles';
 
 enum ArticleModel { Top, Text, Video, Audio, Calendar, Activity }
 
+class ResponseWrapper {
+  final String status;
+  final int code;
+  final String msg;
+  final dynamic datas;
+
+  ResponseWrapper({this.status, this.code, this.msg, this.datas});
+
+  factory ResponseWrapper.fromMap(Map<String, dynamic> map) {
+    return ResponseWrapper(
+        status: map['status'],
+        code: map['code'],
+        msg: map['msg'],
+        datas: map['datas']);
+  }
+
+  bool get isSuccessful => code == 0;
+
+  @override
+  String toString() {
+    return 'status: $status, msg: $msg, code: $code, datas: ${datas.length}';
+  }
+}
+
 class Article {
   final String id;
   final String uid;
@@ -35,7 +59,7 @@ class Article {
   final int createTime;
   final int parseXML;
   final int model;
-  String data;
+  String content;
   int rowId; //table id
 
   Article(
@@ -58,7 +82,7 @@ class Article {
       this.updateTime,
       this.createTime,
       this.parseXML,
-      this.data,
+      this.content,
       this.rowId});
 
   factory Article.fromMap(Map<String, dynamic> map) {
@@ -82,7 +106,7 @@ class Article {
       updateTime: map['update_time'].toString(),
       createTime: safeParseInt(map['create_time']),
       parseXML: safeParseInt(map['parseXML']),
-      data: map['data'],
+      content: map['content'],
       rowId: map['row_id'],
     );
   }
@@ -201,7 +225,7 @@ class Model {
             create_time INTEGER, 
             parseXML INTEGER,
             model INTEGER,
-            data TEXT);
+            content TEXT);
             CREATE INDEX idx_articles_model ON articles (model);
             CREATE INDEX idx_articles_create_time ON articles (create_time);
             ''');
@@ -316,35 +340,52 @@ class Model {
             .shared.deviceId, //figure out the random number logic later
         "show_sdv": 1
       });
-      Map<String, dynamic> mapData = response.data as Map<String, dynamic>;
-      if (mapData.containsKey('status') && mapData['status'] == 'ok') {
-        if (mapData.containsKey('code') && mapData['code'] == 0) {
-          if (mapData.containsKey('datas')) {
-            List<dynamic> data = mapData['datas'];
-            Article lastArticle;
-            for (Map<String, dynamic> a in data) {
-              if (!a.containsKey('create_time')) {
-                //fix the create_time, activity doesn't have a create_time
-                int createTime = lastArticle != null
-                    ? lastArticle.createTime - 1
-                    : DateTime.now().millisecondsSinceEpoch ~/ 1000; //seconds
-                a['create_time'] = createTime.toString();
-              }
-              Article article = Article.fromMap(a);
-              articles[article.id] = article;
-              lastArticle = article;
-            }
-            debugPrint('load ${articles.length} articles from server');
+      ResponseWrapper res = ResponseWrapper.fromMap(response.data);
+      if (res.isSuccessful) {
+        Article lastArticle;
+        //datas is a json list
+        for (Map<String, dynamic> a in res.datas) {
+          if (!a.containsKey('create_time')) {
+            //fix the create_time, activity doesn't have a create_time
+            int createTime = lastArticle != null
+                ? lastArticle.createTime - 1
+                : DateTime.now().millisecondsSinceEpoch ~/ 1000; //seconds
+            a['create_time'] = createTime.toString();
           }
+          Article article = Article.fromMap(a);
+          articles[article.id] = article;
+          lastArticle = article;
         }
+        debugPrint('load ${articles.length} articles from server');
+      } else {
+        print('Failed to fetch articles, ${res.toString()}');
       }
-
       //TODO: handle erros
 
-    } catch (e) {
+    } on DioError catch (e) {
       //TODO: handle errors
       print(e);
     }
     return articles;
+  }
+
+  Future<Article> getArticleDetail(String articleId) async {
+    //http://static.owspace.com/?c=api&a=getPost&post_id=296471&show_sdv=1
+    try {
+      Response response = await _dio.get("/", queryParameters: {
+        "c": "api",
+        "a": "getPost",
+        "post_id": articleId,
+        "show_sdv": 1
+      });
+      ResponseWrapper res = ResponseWrapper.fromMap(response.data);
+      if (res.isSuccessful) {
+        //datas is a json object
+        return Article.fromMap(res.datas);
+      }
+    } on DioError catch (e) {
+      print(e);
+    }
+    return null;
   }
 }
