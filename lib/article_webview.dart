@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -17,8 +19,10 @@ class _ArticleWebViewState extends State<ArticleWebView> {
   @override
   Widget build(BuildContext context) {
     final Article article = widget.article;
+    final String client = Platform.isAndroid ? "andorid" : "iOS";
+    //TODO: add device_id and verison later
     final String url =
-        '${article.html5}?client=iOS&device_id=866963027059338&version=1.3.0';
+        '${article.html5}?client=$client&device_id=866963027059338&version=1.3.0';
     //print(url);
     return WebView(
       initialUrl: url,

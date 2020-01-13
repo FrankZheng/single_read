@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
 import 'package:path/path.dart';
+import 'package:single_read/device_id.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 
+import 'app_info.dart';
 import 'utils.dart';
 
 const String DB_NAME = "app.db";
@@ -307,10 +309,11 @@ class Model {
         "p": "$page",
         "model": "${model.index}",
         "create_time": 0,
-        "client": Platform.isAndroid ? "andorid" : "ios",
-        "version": "1.3.0",
+        "client": Platform.isAndroid ? "andorid" : "iOS",
+        "version": await AppInfo.shared.version,
         "time": DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        "device_id": 866963027059338, //figure out the random number logic later
+        "device_id": await DeviceIdProvider
+            .shared.deviceId, //figure out the random number logic later
         "show_sdv": 1
       });
       Map<String, dynamic> mapData = response.data as Map<String, dynamic>;
