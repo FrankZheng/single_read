@@ -10,15 +10,18 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  Widget menuTextItem(String text, ArticleModel articleModel,
+  Widget menuTextItem(ArticleModel articleModel,
       {Color color = Colors.white, double fontSize = 40}) {
+    String text = ARTICLE_MODEL_TITLES[articleModel];
     return InkWell(
         onTap: () {
           final appModel = Provider.of<AppModel>(context, listen: false);
           appModel.changeArticleModel(articleModel, true);
           Navigator.of(context).pop();
         },
-        child: Text(text, style: TextStyle(color: color, fontSize: fontSize)));
+        child: Text(text,
+            style: TextStyle(
+                color: color, fontSize: fontSize, letterSpacing: 10)));
   }
 
   @override
@@ -70,23 +73,23 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   SizedBox(
                     height: 10,
                   ),
-                  menuTextItem('首    页', ArticleModel.Top),
+                  menuTextItem(ArticleModel.Top),
                   SizedBox(
                     height: 10,
                   ),
-                  menuTextItem('文    字', ArticleModel.Text),
+                  menuTextItem(ArticleModel.Text),
                   SizedBox(
                     height: 10,
                   ),
-                  menuTextItem('声    音', ArticleModel.Audio),
+                  menuTextItem(ArticleModel.Audio),
                   SizedBox(
                     height: 10,
                   ),
-                  menuTextItem('影    像', ArticleModel.Video),
+                  menuTextItem(ArticleModel.Video),
                   SizedBox(
                     height: 10,
                   ),
-                  menuTextItem('单向历', ArticleModel.Calendar),
+                  menuTextItem(ArticleModel.Calendar),
                   Spacer(),
                   Padding(
                     padding: const EdgeInsets.all(8.0),

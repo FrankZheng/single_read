@@ -13,13 +13,7 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  final Map<ArticleModel, String> titles = {
-    ArticleModel.Top: '单 读',
-    ArticleModel.Text: '文 字',
-    ArticleModel.Audio: '声 音',
-    ArticleModel.Video: '影 像',
-    ArticleModel.Calendar: '单向历',
-  };
+  final Map<ArticleModel, String> titles = ARTICLE_MODEL_TITLES;
   final PageController pageController = new PageController();
 
   AppModel get _model => Provider.of<AppModel>(context);

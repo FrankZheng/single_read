@@ -82,9 +82,10 @@ class _ArticleWebViewState extends State<ArticleWebView> {
               mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
           .toString();
     } else {
-      final String client = Platform.isAndroid ? "andorid" : "iOS";
+      final String client = Platform.isAndroid ? "android" : "iOS";
       final String deviceId = await DeviceIdProvider.shared.deviceId;
-      final String version = await AppInfo.shared.version;
+      //here must hard coded as 1.3.0, or it will show thumbnail
+      final String version = "1.3.0"; //await AppInfo.shared.version;
       _url =
           '${widget.article.html5}?client=$client&device_id=$deviceId&version=$version';
     }
@@ -93,6 +94,15 @@ class _ArticleWebViewState extends State<ArticleWebView> {
 }
 
 String fillHtmlTemplate(Article article) {
+  String thumbnail = "";
+  if (article.model == ArticleModel.Text.index) {
+    thumbnail = """
+    <div class="thumbnail">
+      <img src="${article.thumbnail}"/>
+    </div>
+    """;
+  }
+  String category = ARTICLE_MODEL_TITLES[ArticleModel.values[article.model]];
   final String html = """
   <html>
     <head>
@@ -135,12 +145,40 @@ String fillHtmlTemplate(Article article) {
                 margin-top: -10px;
             }
 
+            h2 {
+              font-weight: 300;
+              margin: 35px 0 20px;
+              font-size: 18px;
+              line-height: 26px;
+              color: #1c1c1c;
+            }
+
+            strong {
+              font-weight: bold;
+            }
+
+            p + hr {
+              margin-top: 44px;
+              margin-bottom: 20px;
+            }
+
+            hr + p {
+              margin-top: 34px;
+            }
+
+            hr {
+              margin: 18px 0 24px 0;
+              height: 0.5px;
+              border: none;
+              border-top: 0.5px solid #c0c0c0;
+            }
+
             .content {
                 color: #1c1c1c;
                 margin-top: 34px;
             }
 
-            .imgTop {
+            .thumbnail {
                 border-bottom: 2px solid #AD8A54;
             }
 
@@ -212,29 +250,25 @@ String fillHtmlTemplate(Article article) {
         </style>
     </head>
     <body>
-        <p>
-            <div class="thumbnail">
-                <img src="${article.thumbnail}"/>
-            </div>
+      $thumbnail
 
-            <div class="article">
-                <div class="articleHead">
-                    <div class="r1">
-                        <span class="category">文字</span> 
-                        <span class="updateDate">${article.updateTime}</span>
-                    </div>
-                    <h1 class="title">${article.title}</h1>
-                    <h6 class="author">${article.author}</h6>
-                    <h5 class="lead">${article.lead}</h5>
-                </div>
+      <div class="article">
+          <div class="articleHead">
+              <div class="r1">
+                  <span class="category">$category</span> 
+                  <span class="updateDate">${article.updateTime}</span>
+              </div>
+              <h1 class="title">${article.title}</h1>
+              <h6 class="author">${article.author}</h6>
+              <h5 class="lead">${article.lead}</h5>
+          </div>
 
-                <hr />
-    
-                <div class="content">
-                    ${article.content}
-                </div>
-            </div>
-        
+          <hr />
+
+          <div class="content">
+              ${article.content}
+          </div>
+      </div>
     </body>
 </html>
 """;

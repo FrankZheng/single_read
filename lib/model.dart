@@ -15,6 +15,14 @@ const String ARTICLES_TABLE_NAME = 'articles';
 
 enum ArticleModel { Top, Text, Video, Audio, Calendar, Activity }
 
+const Map<ArticleModel, String> ARTICLE_MODEL_TITLES = {
+  ArticleModel.Top: '单读',
+  ArticleModel.Text: '文字',
+  ArticleModel.Audio: '声音',
+  ArticleModel.Video: '影像',
+  ArticleModel.Calendar: '单向历',
+};
+
 class ResponseWrapper {
   final String status;
   final int code;
@@ -333,7 +341,7 @@ class Model {
         "p": "$page",
         "model": "${model.index}",
         "create_time": 0,
-        "client": Platform.isAndroid ? "andorid" : "iOS",
+        "client": Platform.isAndroid ? "android" : "iOS",
         "version": await AppInfo.shared.version,
         "time": DateTime.now().millisecondsSinceEpoch ~/ 1000,
         "device_id": await DeviceIdProvider
