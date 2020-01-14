@@ -145,14 +145,15 @@ class Article {
     };
   }
 
-  bool operator ==(other) {
-    return other is Article &&
-        other.view == view &&
-        other.good == other.good &&
-        other.comment == comment;
+  bool socialDataUpdated(Article other) {
+    return other.view != view ||
+        other.good != other.good ||
+        other.comment != comment;
   }
 
-  int get hashCode => good.hashCode ^ view.hashCode ^ comment.hashCode;
+  Map<String, dynamic> socialDataMap() {
+    return {'view': view, 'comment': comment, 'good': good};
+  }
 }
 
 class AppModel with ChangeNotifier {
@@ -290,7 +291,7 @@ class Model {
         Article oldArticle = articles1[articleId];
         article.rowId = oldArticle.rowId; //for update db
         article.content = oldArticle.content;
-        if (oldArticle != article) {
+        if (oldArticle.socialDataUpdated(article)) {
           modifiedArticles.add(article);
         }
       }
@@ -326,8 +327,9 @@ class Model {
     }
     //update modified articles
     //for now we only check if the social data updated
+    //only update social data
     for (Article article in modifiedArticles) {
-      await db.update(ARTICLES_TABLE_NAME, article.toMap(),
+      await db.update(ARTICLES_TABLE_NAME, article.socialDataMap(),
           where: 'row_id = ?', whereArgs: [article.rowId]);
     }
   }
