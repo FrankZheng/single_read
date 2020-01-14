@@ -119,6 +119,8 @@ class Article {
     );
   }
 
+  //for insert / update db row
+  // not include 'content' field here
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -286,8 +288,9 @@ class Model {
       } else {
         //update local articles
         Article oldArticle = articles1[articleId];
+        article.rowId = oldArticle.rowId; //for update db
+        article.content = oldArticle.content;
         if (oldArticle != article) {
-          article.rowId = oldArticle.rowId; //for update db
           modifiedArticles.add(article);
         }
       }
@@ -395,5 +398,11 @@ class Model {
       print(e);
     }
     return null;
+  }
+
+  Future<int> updateArticleContent(Article article) async {
+    final db = await database;
+    return await db.update(ARTICLES_TABLE_NAME, {'content': article.content},
+        where: 'row_id = ?', whereArgs: [article.rowId]);
   }
 }

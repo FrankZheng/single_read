@@ -71,10 +71,13 @@ class _ArticleWebViewState extends State<ArticleWebView> {
     if (useLocalHtmlTemplate) {
       Article article;
       if (widget.article.content == null || widget.article.content.isEmpty) {
+        debugPrint('article content not cached, load it');
         final Model model = Provider.of<AppModel>(context).currentModel;
         article = await model.getArticleDetail(widget.article.id);
         widget.article.content = article.content;
+        model.updateArticleContent(widget.article);
       } else {
+        debugPrint('article content already cached');
         article = widget.article;
       }
       String html = fillHtmlTemplate(article);
