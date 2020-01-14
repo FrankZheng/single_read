@@ -18,7 +18,7 @@ class CacheListener {
   }
 }
 
-enum CachePrority {
+enum CachePriority {
   Low,
   Normal,
   High,
@@ -26,10 +26,10 @@ enum CachePrority {
 
 class CacheTask {
   final String url;
-  final CachePrority prority;
+  final CachePriority priority;
   final List<CacheListener> _listeners = [];
   File cachedFile;
-  CacheTask(this.url, this.prority, {CacheListener listener}) {
+  CacheTask(this.url, this.priority, {CacheListener listener}) {
     if (listener != null) {
       _listeners.add(listener);
     }
@@ -56,6 +56,11 @@ class CacheTask {
   void removeListener(CacheListener listener) {
     _listeners.remove(listener);
   }
+
+  @override
+  String toString() {
+    return "url: $url, priority: $priority";
+  }
 }
 
 enum _State {
@@ -73,16 +78,28 @@ class CacheManager {
     if (_cacheDir == null) {
       Directory dir = await getApplicationDocumentsDirectory();
       _cacheDir = join(dir.path, 'cache_dir');
+      Directory cacheDir = Directory(_cacheDir);
+      if (!cacheDir.existsSync()) {
+        cacheDir.createSync();
+      }
+      debugPrint('$_cacheDir');
     }
     return _cacheDir;
   }
 
-  final PriorityQueue<CacheTask> _taskQueue =
-      new PriorityQueue<CacheTask>((t1, t2) {
-    return t1.prority.index.compareTo(t2.prority.index);
-  });
+  CacheManager() {
+    _taskQueue = _createTaskQueue();
+  }
+
+  PriorityQueue<CacheTask> _taskQueue;
 
   final Map<String, CacheTask> _tasks = {};
+
+  PriorityQueue<CacheTask> _createTaskQueue() {
+    return new PriorityQueue<CacheTask>((t1, t2) {
+      return t1.priority.index.compareTo(t2.priority.index);
+    });
+  }
 
   void resume() {
     //may save the download tasks, then resume the tasks here?
@@ -97,27 +114,29 @@ class CacheManager {
   }
 
   Future<File> getCachedFile(String url) async {
-    if (await isCached(url)) {
-      //return the real file object
-      return null;
-    } else {
-      return null;
+    String filePath = await _getCacheFilePath(url);
+    File file = File(filePath);
+    if (await file.exists()) {
+      return file;
     }
+    return null;
   }
 
   Future<bool> isCached(String url) async {
     //check if the url exists in the cache
-    return false;
+    String filePath = await _getCacheFilePath(url);
+    File file = File(filePath);
+    return file.exists();
   }
 
-  Future<CacheTask> downloadUrl(String aUrl,
+  Future<CacheTask> downloadUrl(String url,
       {CacheListener listener,
-      CachePrority prority = CachePrority.Normal}) async {
-    if (aUrl == null || aUrl.isEmpty) {
+      CachePriority priority = CachePriority.Normal}) async {
+    debugPrint('download url: $url');
+    if (url == null || url.isEmpty) {
       debugPrint('invalid url');
       return null;
     }
-    String url = aUrl.toLowerCase();
     //check if url exists in the disk cache?
     //memory cache?
     if (await isCached(url)) {
@@ -128,22 +147,34 @@ class CacheManager {
     if (_tasks.containsKey(url)) {
       debugPrint('[$url] already in the task queue');
       CacheTask task = _tasks[url];
+      if (task.priority != priority) {
+        _shuffleTasks();
+      }
       return task;
     }
 
     //if not, add the url into the priority queue
-    CacheTask task = new CacheTask(url, prority, listener: listener);
+    CacheTask task = new CacheTask(url, priority, listener: listener);
     _taskQueue.add(task);
     _tasks[url] = task;
 
     //perform caching is not running
     _performCaching();
+    return task;
+  }
+
+  void _shuffleTasks() {
+    //some task's priority changed, need re-sort the tasks
+    var taskQueue = _createTaskQueue();
+    taskQueue.addAll(_taskQueue.toList());
   }
 
   void _performCaching() {
+    debugPrint('perform cache tasks');
     if (_state != _State.Running) {
       //pick up tasks from the task queue
       //do download
+      _state = _State.Running;
       while (_taskQueue.isNotEmpty) {
         CacheTask task = _taskQueue.removeFirst();
         //here NOT use await to perform muliple tasks at the same time
@@ -156,7 +187,9 @@ class CacheManager {
         //1.download file
         //2.cache file
         //3.remove task
+        sleep(Duration(milliseconds: 10));
       }
+      _state = _State.Paused;
     }
   }
 
@@ -166,8 +199,11 @@ class CacheManager {
       //may use another api to get the memory bytes directly
       //then return the memory bytes directly
       String saveFilePath = await _getCacheFilePath(task.url);
+      debugPrint('cache task: $task, file path: $saveFilePath');
       await _dio.download(task.url, saveFilePath);
       task.cachedFile = File(saveFilePath);
+      task.onCached();
+      _tasks.remove(task.url);
     } on DioError catch (e) {
       print('Failed to download [$url], ${e.toString()}');
     }

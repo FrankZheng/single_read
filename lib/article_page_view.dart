@@ -3,6 +3,7 @@ import 'package:single_read/article_detail_view.dart';
 import 'package:single_read/model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'cached_image_view.dart';
 import 'model.dart';
 import 'video_article_detail_view.dart';
 
@@ -151,14 +152,15 @@ class _ArticlePageViewState extends State<ArticlePageView> {
 
   Widget buildThumbnailWidget(Article article, double width, double height) {
     return Container(
-      width: width,
-      height: height,
-      color: Colors.black54,
-      child: Image.network(
-        '${article.thumbnail}',
-        fit: BoxFit.cover,
-      ),
-    );
+        width: width,
+        height: height,
+        color: Colors.black54,
+        child: CachedImageView(url: article.thumbnail)
+        // child: Image.network(
+        //   '${article.thumbnail}',
+        //   fit: BoxFit.cover,
+        // ),
+        );
   }
 
   void onPosterViewTapped(Article article) async {
