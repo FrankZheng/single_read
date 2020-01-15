@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:single_read/cached_image_view.dart';
 import 'package:single_read/video_article_detail_view.dart';
 
 import 'article_detail_view.dart';
@@ -23,11 +24,11 @@ class _ArticleListViewState extends State<ArticleListView> {
           onTap: () => _onItemTap(article),
           child: ListTile(
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            leading: Image.network(
-              article.thumbnail,
+            leading: CachedImageView(
+              url: article.thumbnail,
+              fit: BoxFit.cover,
               width: 80,
               height: 80,
-              fit: BoxFit.cover,
             ),
             title: Text(
               article.title,

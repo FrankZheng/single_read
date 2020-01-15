@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:single_read/cached_image_view.dart';
 import 'article_webview.dart';
 import 'audio_player_view.dart';
 import 'model.dart';
@@ -15,9 +16,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   Widget buildThumbnailWidget(Article article) {
     double width = MediaQuery.of(context).size.width;
     double height = width * 9 / 16;
-    Widget imgWidget = Image.network(
-      article.thumbnail,
-      fit: BoxFit.cover,
+    Widget imgWidget = CachedImageView(
+      url: article.thumbnail,
     );
     Widget child = imgWidget;
     if (article.model == ArticleModel.Audio.index) {

@@ -41,9 +41,10 @@ class CacheTask {
     }
   }
 
-  void onCached() {
+  void onCached(File file) {
+    cachedFile = file;
     for (CacheListener listener in _listeners) {
-      listener.onCached(url, cachedFile);
+      listener.onCached(url, file);
     }
   }
 
@@ -195,23 +196,24 @@ class CacheManager {
 
   Future<void> _performTask(CacheTask task) async {
     try {
-      //here dio directly save the image to file
-      //may use another api to get the memory bytes directly
-      //then return the memory bytes directly
       String saveFilePath = await _getCacheFilePath(task.url);
       debugPrint('cache task: $task, file path: $saveFilePath');
       await _dio.download(task.url, saveFilePath);
-      task.cachedFile = File(saveFilePath);
-      task.onCached();
-      _tasks.remove(task.url);
+      task.onCached(File(saveFilePath));
     } on DioError catch (e) {
-      print('Failed to download [$url], ${e.toString()}');
+      debugPrint('Failed to download [$url], ${e.toString()}');
+      task.onError(e);
+    } finally {
+      _tasks.remove(task.url);
     }
   }
 
   Future<String> _getCacheFilePath(String url) async {
     //here need generate a unique string by using the url
-    return join(await _getCacheDir(), _generateMd5(url));
+    String ext = extension(url);
+    String md5 = _generateMd5(url);
+    String filename = md5 + ext;
+    return join(await _getCacheDir(), filename);
   }
 
   String _generateMd5(String input) {

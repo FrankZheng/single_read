@@ -155,12 +155,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
         width: width,
         height: height,
         color: Colors.black54,
-        child: CachedImageView(url: article.thumbnail)
-        // child: Image.network(
-        //   '${article.thumbnail}',
-        //   fit: BoxFit.cover,
-        // ),
-        );
+        child: CachedImageView(url: article.thumbnail));
   }
 
   void onPosterViewTapped(Article article) async {
@@ -180,10 +175,11 @@ class _ArticlePageViewState extends State<ArticlePageView> {
       child: Stack(
         children: <Widget>[
           Container(
-            width: width,
-            height: height,
-            child: Image.network(article.thumbnail, fit: BoxFit.fill),
-          ),
+              width: width,
+              height: height,
+              child: CachedImageView(
+                url: article.thumbnail,
+              )),
         ],
       ),
     );
@@ -195,8 +191,9 @@ class _ArticlePageViewState extends State<ArticlePageView> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: Center(
-          child: Image.network(article.thumbnail, fit: BoxFit.cover),
-        ),
+            child: CachedImageView(
+          url: article.thumbnail,
+        )),
       ),
     );
   }

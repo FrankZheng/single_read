@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:single_read/cache_manager.dart';
 import 'package:single_read/device_id.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -38,7 +40,7 @@ class _ArticleWebViewState extends State<ArticleWebView> {
           )
         : WebView(
             initialUrl: _url,
-            javascriptMode: JavascriptMode.unrestricted,
+            javascriptMode: JavascriptMode.disabled,
             navigationDelegate: _navigationDelegate,
           );
   }
@@ -72,7 +74,8 @@ class _ArticleWebViewState extends State<ArticleWebView> {
       Article article;
       if (widget.article.content == null || widget.article.content.isEmpty) {
         debugPrint('article content not cached, load it');
-        final Model model = Provider.of<AppModel>(context).currentModel;
+        final Model model =
+            Provider.of<AppModel>(this.context, listen: false).currentModel;
         article = await model.getArticleDetail(widget.article.id);
         widget.article.content = article.content;
         model.updateArticleContent(widget.article);
@@ -80,7 +83,7 @@ class _ArticleWebViewState extends State<ArticleWebView> {
         debugPrint('article content already cached');
         article = widget.article;
       }
-      String html = fillHtmlTemplate(article);
+      String html = await fillHtmlTemplate(article);
       _url = Uri.dataFromString(html,
               mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
           .toString();
@@ -96,12 +99,24 @@ class _ArticleWebViewState extends State<ArticleWebView> {
   }
 }
 
-String fillHtmlTemplate(Article article) {
+Future<String> fillHtmlTemplate(Article article) async {
   String thumbnail = "";
+  String src = article.thumbnail;
+  File file = await CacheManager.shared.getCachedFile(src);
+  if (file != null) {
+    //flutter webview doesn't support enable local file access for iOS and Android
+    //it just doesn't expose the web view settings to dart api
+    //here use base64 as workaround
+    String encoded = base64Encode(file.readAsBytesSync());
+    String format = extension(file.path);
+    format = format.isEmpty ? 'jpg' : format.substring(1);
+    debugPrint('format:$format');
+    src = 'data:image/${format.toLowerCase()};base64,$encoded';
+  }
   if (article.model == ArticleModel.Text.index) {
     thumbnail = """
     <div class="thumbnail">
-      <img src="${article.thumbnail}"/>
+      <img src="$src"/>
     </div>
     """;
   }

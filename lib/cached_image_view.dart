@@ -5,7 +5,11 @@ import 'cache_manager.dart';
 
 class CachedImageView extends StatefulWidget {
   final String url;
-  CachedImageView({@required this.url});
+  final BoxFit fit;
+  final double width;
+  final double height;
+  CachedImageView(
+      {@required this.url, this.fit = BoxFit.cover, this.width, this.height});
   @override
   _CachedImageViewState createState() => _CachedImageViewState();
 }
@@ -29,14 +33,21 @@ class _CachedImageViewState extends State<CachedImageView> with CacheListener {
 
   @override
   Widget build(BuildContext context) {
-    return _imgFile == null
-        ? Center(
-            child: CircularProgressIndicator(),
-          )
-        : Image.file(
-            _imgFile,
-            fit: BoxFit.cover,
-          );
+    if (_imgFile == null) {
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+      );
+    }
+    return Image.file(
+      _imgFile,
+      fit: widget.fit,
+      width: widget.width,
+      height: widget.height,
+    );
   }
 
   Future<void> _init() async {
