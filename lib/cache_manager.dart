@@ -26,7 +26,7 @@ enum CachePriority {
 
 class CacheTask {
   final String url;
-  final CachePriority priority;
+  CachePriority priority;
   final List<CacheListener> _listeners = [];
   File cachedFile;
   CacheTask(this.url, this.priority, {CacheListener listener}) {
@@ -149,6 +149,7 @@ class CacheManager {
       debugPrint('[$url] already in the task queue');
       CacheTask task = _tasks[url];
       if (task.priority != priority) {
+        task.priority = priority;
         _shuffleTasks();
       }
       return task;
@@ -178,16 +179,7 @@ class CacheManager {
       _state = _State.Running;
       while (_taskQueue.isNotEmpty) {
         CacheTask task = _taskQueue.removeFirst();
-        //here NOT use await to perform muliple tasks at the same time
-
         _performTask(task);
-        //how to download multiple tasks at the same time?
-        //how to make sure high priority task could start immediately?
-        //how to perform the retry mechanism?
-        //how to deal with the retrying tasks and a higher priority tasks?
-        //1.download file
-        //2.cache file
-        //3.remove task
         sleep(Duration(milliseconds: 10));
       }
       _state = _State.Paused;

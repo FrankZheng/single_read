@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:single_read/cached_image_view.dart';
@@ -51,7 +52,7 @@ class _ArticleListViewState extends State<ArticleListView> {
   }
 
   void _onItemTap(Article article) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) {
       return article.model == ArticleModel.Video.index
           ? VideoArticleDetailView(
               article: article,
