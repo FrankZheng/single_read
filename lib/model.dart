@@ -165,11 +165,14 @@ class AppModel with ChangeNotifier {
 
   void changeArticleModel(ArticleModel articleModel, bool loadArticles) {
     if (articleModel != _articleModel) {
+      currentModel.appModel = null;
       _articleModel = articleModel;
+      currentModel.appModel = this;
+
       notifyListeners();
 
       if (currentModel.articles.isEmpty) {
-        loadMoreArticles();
+        currentModel.refresh();
       }
     }
   }
@@ -190,23 +193,35 @@ class AppModel with ChangeNotifier {
   }
 
   List<Article> get articles => currentModel.articles;
+
+  void notifyUI() {
+    notifyListeners();
+  }
 }
 
 class Model {
   //static Model shared = new Model();
   final Dio _dio;
   final ArticleModel _model;
+  AppModel appModel;
+
   int _pageSize;
   Model({ArticleModel model = ArticleModel.Top})
       : _dio = Dio(),
         _model = model,
-        _pageSize = model == ArticleModel.Top ? 10 : 30 {
+        _pageSize = model == ArticleModel.Top ? 11 : 30 {
     _dio.options.baseUrl = 'http://static.owspace.com';
+    _dio.options.connectTimeout = 3000;
+    _dio.options.receiveTimeout = 3000;
   }
-  final List<Article> _articles = [];
+  List<Article> _articles = [];
   int _page = 1;
 
   Future<Database> _database;
+
+  void notifyUI() {
+    appModel?.notifyUI();
+  }
 
   Future<Database> get database async {
     if (_database != null) {
@@ -249,38 +264,78 @@ class Model {
   List<Article> get articles => _articles;
   ArticleModel get articleModel => _model;
 
-  Future<Map<String, Article>> loadMoreArticlesFromDB() async {
-    debugPrint(
-        'load more articles from db, pageSize:$_pageSize, offset:${_articles.length}, $articleModel');
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(ARTICLES_TABLE_NAME,
-        where: _model == ArticleModel.Top ? null : 'model = ?',
-        whereArgs: _model == ArticleModel.Top ? null : [_model.index],
-        orderBy: 'create_time DESC',
-        limit: _pageSize,
-        offset: _articles.length);
-    debugPrint('load ${maps.length} records from db');
+  //refresh articles
+  Future<void> refresh() async {
+    debugPrint('refresh articles, [$_model]');
+    Future<Map<String, Article>> fetchArticlesFuture =
+        _fetchArticles(model: _model); //page = 1
+    if (_articles.isEmpty) {
+      //load articles from network and database
+      bool articlesFetchedTimeout = false;
+      final Duration fetchArticlesTimeLimit = Duration(milliseconds: 1000);
+      fetchArticlesFuture.then((articles) {
+        if (articlesFetchedTimeout) {
+          _mergeArticles(_articlesMap(_articles), articles, false);
+        }
+      });
 
-    Map<String, Article> saved = {};
-    for (Map<String, dynamic> map in maps) {
-      Article article = Article.fromMap(map);
-      saved[article.id] = article;
+      fetchArticlesFuture.timeout(fetchArticlesTimeLimit, onTimeout: () {
+        debugPrint('fetch articles timeout');
+        articlesFetchedTimeout = true;
+        return {}; //when timeout, just return
+      });
+
+      List<Map<String, Article>> allArticles =
+          await Future.wait([fetchArticlesFuture, _loadArticlesFromDB()]);
+      _mergeArticles(allArticles[1], allArticles[0], false);
+    } else {
+      //just load articles from network
+      Map<String, Article> articles = await fetchArticlesFuture;
+      _mergeArticles(_articlesMap(_articles), articles);
     }
-    return saved;
   }
 
   Future<void> loadMoreArticles() async {
     debugPrint('load more articles, page:$_page, model:$articleModel');
+    Future<Map<String, Article>> fetchArticlesFuture =
+        _fetchArticles(model: _model, page: _page == 1 ? 2 : _page);
+    //load articles from network and database
+    bool articlesFetchedTimeout = false;
+    final Duration fetchArticlesTimeLimit = Duration(milliseconds: 1000);
+    fetchArticlesFuture.then((articles) {
+      if (articlesFetchedTimeout) {
+        _mergeArticles(_articlesMap(_articles), articles, false);
+      }
+      if (articles.isNotEmpty) {
+        _page++;
+      }
+    });
 
-    List<Map<String, Article>> allArticles = await Future.wait(
-        [loadMoreArticlesFromDB(), getArticles(model: _model, page: _page)]);
-    Map<String, Article> articles1 = allArticles[0]; //local
-    Map<String, Article> articles2 = allArticles[1]; //remote
-    if (articles2.isNotEmpty) {
-      //fix the _pageSize by received articles
-      _pageSize = articles2.length;
-    }
+    fetchArticlesFuture.timeout(fetchArticlesTimeLimit, onTimeout: () {
+      debugPrint('fetch articles timeout');
+      articlesFetchedTimeout = true;
+      return {}; //when timeout, just return
+    });
 
+    List<Map<String, Article>> allArticles =
+        await Future.wait([fetchArticlesFuture, _loadArticlesFromDB()]);
+    _mergeArticles(allArticles[1], allArticles[0], false);
+  }
+
+  Map<String, Article> _articlesMap(List<Article> articles) {
+    Map<String, Article> map = {};
+    articles.forEach((article) => map[article.id] = article);
+    return map;
+  }
+
+  //merge articles
+  //articles1: local articles
+  //articles2: articles from network
+  //replaceOrAppend: true - replace, false: append
+  Future<void> _mergeArticles(
+      Map<String, Article> articles1, Map<String, Article> articles2,
+      [bool replaceOrAppend = true]) async {
+    //merge the articles, check if need refresh UI?
     //merge the articles together
     List<Article> newArticles = [];
     List<Article> modifiedArticles = [];
@@ -302,19 +357,32 @@ class Model {
     debugPrint('has ${newArticles.length} new articles');
     debugPrint('has ${modifiedArticles.length} modified articles');
 
+    if (newArticles.isEmpty && modifiedArticles.isEmpty) {
+      //no update
+      debugPrint('no update');
+      return;
+    }
+
     //sort by create time
     List<Article> merged = articles1.values.toList();
     merged.sort((a1, a2) {
       return a2.createTime.compareTo(a1.createTime);
     });
 
-    if (merged.isNotEmpty) {
-      //only add articles which amount <= _pageSize
-      _articles.addAll(merged.sublist(
-          0, merged.length > _pageSize ? _pageSize : merged.length));
-      _page++;
+    int maxSize = articles2.length;
+    List<Article> limited =
+        merged.sublist(0, merged.length > maxSize ? maxSize : merged.length);
+
+    if (replaceOrAppend) {
+      _articles = limited;
+    } else {
+      _articles.addAll(limited);
     }
 
+    //notify UI
+    notifyUI();
+
+    //save changes to db
     final db = await database;
     for (Article article in newArticles) {
       // if (article.model == ArticleModel.Activity.index) {
@@ -336,7 +404,32 @@ class Model {
     }
   }
 
-  Future<Map<String, Article>> getArticles(
+  //load articles from local database
+  Future<Map<String, Article>> _loadArticlesFromDB() async {
+    debugPrint(
+        'load more articles from db, pageSize:$_pageSize, offset:${_articles.length}, $articleModel');
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(ARTICLES_TABLE_NAME,
+        where: _model == ArticleModel.Top ? "model != ?" : 'model = ?',
+        whereArgs: _model == ArticleModel.Top
+            ? [ArticleModel.Calendar.index]
+            : [_model.index],
+        orderBy: 'create_time DESC',
+        limit: _pageSize,
+        offset: _articles.length);
+    debugPrint('load ${maps.length} records from db');
+
+    Map<String, Article> saved = {};
+    for (Map<String, dynamic> map in maps) {
+      Article article = Article.fromMap(map);
+      saved[article.id] = article;
+    }
+    return saved;
+  }
+
+  //load articles from network
+  //TODO: add retry mechanism
+  Future<Map<String, Article>> _fetchArticles(
       {ArticleModel model = ArticleModel.Top, int page = 1}) async {
     //http://static.owspace.com/?c=api&a=getList&p=1&model=1&page_id=0&create_time=0&client=android&version=1.3.0&time=1467867330&device_id=866963027059338&show_sdv=1
 
