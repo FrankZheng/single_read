@@ -154,6 +154,8 @@ class Article {
   Map<String, dynamic> socialDataMap() {
     return {'view': view, 'comment': comment, 'good': good};
   }
+
+  bool get contentIsReady => content != null && content.isNotEmpty;
 }
 
 class AppModel with ChangeNotifier {

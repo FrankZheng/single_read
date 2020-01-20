@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:single_read/article_detail_view.dart';
 import 'package:single_read/model.dart';
@@ -32,7 +33,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
   }
 
   void onArticleTapped(Article article) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
+    Navigator.push(context, CupertinoPageRoute(builder: (context) {
       return article.model == ArticleModel.Video.index
           ? VideoArticleDetailView(
               article: article,

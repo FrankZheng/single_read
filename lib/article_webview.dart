@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +14,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import 'app_info.dart';
 import 'model.dart';
+import 'package:image/image.dart' as Img;
 
 class ArticleWebView extends StatefulWidget {
   final Article article;
@@ -24,25 +27,60 @@ class ArticleWebView extends StatefulWidget {
 
 class _ArticleWebViewState extends State<ArticleWebView> {
   String _url;
+  WebViewController _webViewController;
+  bool _pageFinished = false;
+  bool _showWebView = false;
+
   @override
   void initState() {
     super.initState();
-    Timer(Duration(microseconds: 100), () {
+    Timer(Duration(milliseconds: 100), () {
       _init();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return _url == null
-        ? Center(
-            child: CircularProgressIndicator(),
-          )
-        : WebView(
-            initialUrl: _url,
-            javascriptMode: JavascriptMode.disabled,
-            navigationDelegate: _navigationDelegate,
-          );
+    print('build webview');
+    if (_url == null) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    return AnimatedOpacity(
+      opacity: _showWebView ? 1.0 : 0.0,
+      duration: Duration(milliseconds: 50),
+      child: WebView(
+        initialUrl: _url,
+        javascriptMode: JavascriptMode.unrestricted,
+        navigationDelegate: _navigationDelegate,
+        onWebViewCreated: (controller) {
+          _webViewController = controller;
+        },
+        onPageStarted: (_) {
+          print('pageStarted');
+          setState(() {
+            _showWebView = true;
+          });
+        },
+        onPageFinished: (_) {
+          print('pageFinished');
+          _pageFinished = true;
+          _renderArticleContent();
+        },
+      ),
+    );
+  }
+
+  void _renderArticleContent() {
+    Timer(Duration(milliseconds: 100), () {
+      if (_pageFinished && widget.article.contentIsReady) {
+        String js = '''
+          document.getElementById('content').innerHTML = `${widget.article.content}`;
+          ''';
+        _webViewController.evaluateJavascript(js);
+      }
+    });
   }
 
   FutureOr<NavigationDecision> _navigationDelegate(
@@ -78,6 +116,7 @@ class _ArticleWebViewState extends State<ArticleWebView> {
             Provider.of<AppModel>(this.context, listen: false).currentModel;
         article = await model.getArticleDetail(widget.article.id);
         widget.article.content = article.content;
+        _renderArticleContent();
         model.updateArticleContent(widget.article);
       } else {
         debugPrint('article content already cached');
@@ -97,31 +136,41 @@ class _ArticleWebViewState extends State<ArticleWebView> {
     }
     setState(() {});
   }
-}
 
-Future<String> fillHtmlTemplate(Article article) async {
-  String thumbnail = "";
-  String src = article.thumbnail;
-  File file = await CacheManager.shared.getCachedFile(src);
-  if (file != null) {
-    //flutter webview doesn't support enable local file access for iOS and Android
-    //it just doesn't expose the web view settings to dart api
-    //here use base64 as workaround
-    String encoded = base64Encode(file.readAsBytesSync());
-    String format = extension(file.path);
-    format = format.isEmpty ? 'jpg' : format.substring(1);
-    debugPrint('format:$format');
-    src = 'data:image/${format.toLowerCase()};base64,$encoded';
-  }
-  if (article.model == ArticleModel.Text.index) {
-    thumbnail = """
-    <div class="thumbnail">
-      <img src="$src"/>
-    </div>
-    """;
-  }
-  String category = ARTICLE_MODEL_TITLES[ArticleModel.values[article.model]];
-  final String html = """
+  Future<String> fillHtmlTemplate(Article article) async {
+    String thumbnail = "";
+    if (article.model == ArticleModel.Text.index) {
+      String src = article.thumbnail;
+      File file = await CacheManager.shared.getCachedFile(src);
+      if (file != null) {
+        //flutter webview doesn't support enable local file access for iOS and Android
+        //it just doesn't expose the web view settings to dart api
+        //here use base64 as workaround
+        Map<String, dynamic> params = {
+          'file': file,
+          'width': MediaQuery.of(this.context).size.width,
+          'fileLimitedSize': Platform.isAndroid ? 200000 : 0,
+        };
+        String encoded = await compute(encodeFileAsBase64Str, params);
+        //String encoded = encodeFileAsBase64Str(params);
+        String format = extension(file.path);
+        format = format.isEmpty ? 'jpg' : format.substring(1);
+        debugPrint('format:$format, encoded:${encoded.length}');
+        thumbnail = """
+          <div class="thumbnail">
+            <img src="data:image/${format.toLowerCase()};base64, $encoded"/>
+          </div>
+        """;
+      } else {
+        thumbnail = """
+          <div class="thumbnail">
+            <img src="$src"/>
+          </div>
+        """;
+      }
+    }
+    String category = ARTICLE_MODEL_TITLES[ArticleModel.values[article.model]];
+    final String html = """
   <html>
     <head>
         <meta charset="UTF-8">
@@ -134,7 +183,7 @@ Future<String> fillHtmlTemplate(Article article) async {
 
             body {
                 background-color: #F8F7F5;
-                -webkit-overflow-scrolling: touch;
+                /*-webkit-overflow-scrolling: touch;*/
             }
 
             p {
@@ -283,12 +332,32 @@ Future<String> fillHtmlTemplate(Article article) async {
 
           <hr />
 
-          <div class="content">
-              ${article.content}
+          <div id="content">
+              
           </div>
       </div>
     </body>
 </html>
 """;
-  return html;
+    return html;
+  }
+}
+
+String encodeFileAsBase64Str(Map<String, dynamic> params) {
+  File file = params['file'];
+  double width = params['width'];
+  int limitedSize = params['fileLimitedSize'];
+  Uint8List origin = file.readAsBytesSync();
+  if (limitedSize > 0) {
+    if (origin.length > limitedSize) {
+      Img.Image image = Img.decodeImage(origin);
+      debugPrint('origin.size: ${image.width}, ${image.height}');
+      Img.Image thumbnail = Img.copyResize(image,
+          width: width.toInt(), interpolation: Img.Interpolation.average);
+      List<int> resized = Img.encodeJpg(thumbnail);
+      debugPrint('origin: ${origin.length}, resized:${resized.length}');
+      return base64Encode(resized);
+    }
+  }
+  return base64Encode(origin);
 }
