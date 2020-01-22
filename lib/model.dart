@@ -254,8 +254,10 @@ class Model {
         'load more articles from db, pageSize:$_pageSize, offset:${_articles.length}, $articleModel');
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(ARTICLES_TABLE_NAME,
-        where: _model == ArticleModel.Top ? null : 'model = ?',
-        whereArgs: _model == ArticleModel.Top ? null : [_model.index],
+        where: _model == ArticleModel.Top ? 'model != ?' : 'model = ?',
+        whereArgs: _model == ArticleModel.Top
+            ? [ArticleModel.Calendar.index]
+            : [_model.index],
         orderBy: 'create_time DESC',
         limit: _pageSize,
         offset: _articles.length);
@@ -273,7 +275,7 @@ class Model {
     debugPrint('load more articles, page:$_page, model:$articleModel');
 
     List<Map<String, Article>> allArticles = await Future.wait(
-        [loadMoreArticlesFromDB(), getArticles(model: _model, page: _page)]);
+        [loadMoreArticlesFromDB(), fetchArticles(model: _model, page: _page)]);
     Map<String, Article> articles1 = allArticles[0]; //local
     Map<String, Article> articles2 = allArticles[1]; //remote
     if (articles2.isNotEmpty) {
@@ -336,7 +338,7 @@ class Model {
     }
   }
 
-  Future<Map<String, Article>> getArticles(
+  Future<Map<String, Article>> fetchArticles(
       {ArticleModel model = ArticleModel.Top, int page = 1}) async {
     //http://static.owspace.com/?c=api&a=getList&p=1&model=1&page_id=0&create_time=0&client=android&version=1.3.0&time=1467867330&device_id=866963027059338&show_sdv=1
 
