@@ -180,6 +180,7 @@ class _ArticlePageViewState extends State<ArticlePageView> {
               height: height,
               child: CachedImageView(
                 url: article.thumbnail,
+                fit: BoxFit.fill,
               )),
         ],
       ),
