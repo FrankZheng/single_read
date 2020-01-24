@@ -38,9 +38,9 @@ class ArticlePageView extends StatelessWidget {
 
   Widget _buildArticleContentView(BuildContext context, Article article) {
     if (article.model == 5) {
-      return _buildPosterView(article);
+      return ActivityAriticleView(article);
     } else if (article.model == 4) {
-      return _buildCalendarWidget(article);
+      return CalendarArticleView(article);
     } else {
       return ArticleCoverView(
         article: article,
@@ -61,16 +61,24 @@ class ArticlePageView extends StatelessWidget {
     }));
   }
 
-  void _onPosterViewTapped(Article article) async {
-    final String url = article.html5;
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      print('Could not open $url');
+  void _onPageChanged(BuildContext context, int index) {
+    //each page has 11 articles
+    AppModel model = Provider.of<AppModel>(context);
+    print('curent index: $index, total: ${model.articles.length}');
+    final int prefetchPageCount = 3;
+    if (index == model.articles.length - prefetchPageCount) {
+      print('load more articles');
+      model.loadMoreArticles();
     }
   }
+}
 
-  Widget _buildPosterView(Article article) {
+class ActivityAriticleView extends StatelessWidget {
+  final Article article;
+  ActivityAriticleView(this.article);
+
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
       onTap: () => _onPosterViewTapped(article),
       child: Stack(
@@ -86,7 +94,22 @@ class ArticlePageView extends StatelessWidget {
     );
   }
 
-  Widget _buildCalendarWidget(Article article) {
+  void _onPosterViewTapped(Article article) async {
+    final String url = article.html5;
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      print('Could not open $url');
+    }
+  }
+}
+
+class CalendarArticleView extends StatelessWidget {
+  final Article article;
+  CalendarArticleView(this.article);
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Center(
@@ -94,16 +117,5 @@ class ArticlePageView extends StatelessWidget {
         url: article.thumbnail,
       )),
     );
-  }
-
-  void _onPageChanged(BuildContext context, int index) {
-    //each page has 11 articles
-    AppModel model = Provider.of<AppModel>(context);
-    print('curent index: $index, total: ${model.articles.length}');
-    final int prefetchPageCount = 3;
-    if (index == model.articles.length - prefetchPageCount) {
-      print('load more articles');
-      model.loadMoreArticles();
-    }
   }
 }
