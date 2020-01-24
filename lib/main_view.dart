@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:single_read/article_list_view.dart';
+import 'package:single_read/top_bar.dart';
 
 import 'article_page_view.dart';
 import 'model.dart';
@@ -34,6 +35,9 @@ class _MainViewState extends State<MainView> {
 
   Widget contentWidget() {
     final articleModel = Provider.of<AppModel>(context).currentArticleModel;
+    final String title =
+        titles[Provider.of<AppModel>(context).currentArticleModel];
+
     if (articleModel == ArticleModel.Top ||
         articleModel == ArticleModel.Calendar) {
       return Stack(children: <Widget>[
@@ -46,14 +50,16 @@ class _MainViewState extends State<MainView> {
             return ArticlePageView(_model.articles[index]);
           },
         ),
-        buildTopbar(articleModel == ArticleModel.Top)
+        TopBar(
+            title: title,
+            transparentBackground: articleModel == ArticleModel.Top),
       ]);
     } else if (articleModel == ArticleModel.Text ||
         articleModel == ArticleModel.Video ||
         articleModel == ArticleModel.Audio) {
       return Column(
         children: <Widget>[
-          buildTopbar(false),
+          TopBar(title: title, transparentBackground: false),
           Expanded(child: ArticleListView()),
         ],
       );
@@ -70,54 +76,5 @@ class _MainViewState extends State<MainView> {
       print('load more articles');
       _model.loadMoreArticles();
     }
-  }
-
-  Widget buildTopbar([bool transparentBackground = true]) {
-    double paddingTop = MediaQuery.of(context).padding.top;
-    return Container(
-      height: paddingTop + kToolbarHeight,
-      child: Padding(
-        padding: EdgeInsets.only(left: 10, right: 10, top: paddingTop),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            InkWell(
-              onTap: () {
-                Scaffold.of(context).openDrawer();
-              },
-              child: Icon(
-                Icons.menu,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            Text(
-              titles[Provider.of<AppModel>(context).currentArticleModel],
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 20,
-                //fontWeight: FontWeight.w100
-              ),
-            ),
-            Icon(
-              Icons.person_outline,
-              color: Colors.white,
-              size: 30,
-            ),
-          ],
-        ),
-      ),
-      decoration: transparentBackground
-          ? BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                  Colors.black.withAlpha((255 * 0.5).toInt()),
-                  Colors.black.withAlpha((255 * 0.05).toInt())
-                ]))
-          : BoxDecoration(color: Colors.black),
-    );
   }
 }
