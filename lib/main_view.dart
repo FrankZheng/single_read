@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:single_read/article_list_view.dart';
-import 'package:single_read/top_bar.dart';
 
 import 'article_page_view.dart';
 import 'model.dart';
@@ -40,36 +39,13 @@ class _MainViewState extends State<MainView> {
 
     if (articleModel == ArticleModel.Top ||
         articleModel == ArticleModel.Calendar) {
-      return Stack(children: <Widget>[
-        PageView.builder(
-          itemCount: _model.articles.length,
-          scrollDirection: Axis.vertical,
-          controller: pageController,
-          onPageChanged: _onPageChanged,
-          itemBuilder: (context, index) {
-            return ArticlePageView(_model.articles[index]);
-          },
-        ),
-        TopBar(
-            title: title,
-            transparentBackground: articleModel == ArticleModel.Top),
-      ]);
+      return ArticlePageView(title: title);
     } else if (articleModel == ArticleModel.Text ||
         articleModel == ArticleModel.Video ||
         articleModel == ArticleModel.Audio) {
       return ArticleListView(title: title);
     } else {
       return null;
-    }
-  }
-
-  void _onPageChanged(int index) {
-    //each page has 11 articles
-    print('curent index: $index, total: ${_model.articles.length}');
-    final int prefetchPageCount = 3;
-    if (index == _model.articles.length - prefetchPageCount) {
-      print('load more articles');
-      _model.loadMoreArticles();
     }
   }
 }
