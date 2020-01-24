@@ -57,12 +57,7 @@ class _MainViewState extends State<MainView> {
     } else if (articleModel == ArticleModel.Text ||
         articleModel == ArticleModel.Video ||
         articleModel == ArticleModel.Audio) {
-      return Column(
-        children: <Widget>[
-          TopBar(title: title, transparentBackground: false),
-          Expanded(child: ArticleListView()),
-        ],
-      );
+      return ArticleListView(title: title);
     } else {
       return null;
     }

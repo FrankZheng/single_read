@@ -31,8 +31,9 @@ class TopBar extends StatelessWidget {
               //titles[Provider.of<AppModel>(context).currentArticleModel],
               title,
               style: TextStyle(
-                color: Colors.white70,
+                color: Colors.white,
                 fontSize: 20,
+                letterSpacing: 5,
                 //fontWeight: FontWeight.w100
               ),
             ),
