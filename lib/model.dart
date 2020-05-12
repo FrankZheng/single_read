@@ -370,6 +370,9 @@ class Model {
             a['create_time'] = createTime.toString();
           }
           Article article = Article.fromMap(a);
+          if (article.model == 11) {
+            continue;
+          }
           articles[article.id] = article;
           lastArticle = article;
         }
