@@ -1,5 +1,3 @@
-Language: [English](README.md) | [中文简体](README-ZH.md)
-
 # single_read
 
 A new Flutter project.
