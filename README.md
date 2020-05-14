@@ -1,18 +1,13 @@
 Language: [English](README.md) | [中文简体](README-ZH.md)
 
 # single_read
+This is a flutter implementation of the Chinese Reading App 单读 [http://www.owspace.com/#read], only for studying purpose.
 
-A new Flutter project.
+## Implemented features
+- Article List 
+- Article detail page
+- Support video playing
+- Support audio playing 
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Screenshots
+<img src="./screenshots/single_read_screenshot.gif" />
