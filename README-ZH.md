@@ -1,6 +1,6 @@
 # single_read
 
-这是一个[单读](http://www.owspace.com/#read)app的flutter的实现，目的是希望学习和使用flutter技术。
+这是一个 [单读](http://www.owspace.com/#read) app的flutter的实现，目的是希望学习和使用flutter技术。
 
 ## 目前实现的功能有:
 - 首页 / 文字 / 影像 / 声音 / 单向历
